@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; padding: 0; }
+html, body, #root { height: 100%; }
+body { font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+
+:root {
+  --bg-primary:    #0b1437;
+  --bg-secondary:  #111c44;
+  --border:        rgba(255,255,255,0.08);
+  --accent:        #4318FF;
+  --accent-2:      #868cff;
+  --gradient:      linear-gradient(97.89deg,#868cff 17.73%,#4318ff 100%);
+  --text-primary:  #ffffff;
+  --text-secondary:#a0aec0;
+  --text-dim:      #4a5568;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: 'DM Sans', sans-serif;
+  --radius: 12px;
+}
+
+body { color: var(--text-primary); font-family: var(--font-sans); background: var(--bg-primary); }
