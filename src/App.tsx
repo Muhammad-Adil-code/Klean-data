@@ -11,7 +11,17 @@ export default function App() {
     <DataLibProvider>
       <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--bg-primary)' }}>
         <Sidebar active={tab} onSelect={setTab} />
-        <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+
+        <main style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          background: tab === 'chat'
+            ? '#080a12'
+            : 'radial-gradient(ellipse at top left,rgba(67,24,255,0.07) 0%,transparent 55%), var(--bg-primary)',
+          transition: 'background 0.3s',
+        }}>
           {tab === 'connectors' && <ConnectorsPanel />}
           {tab === 'chat'       && <Chat />}
         </main>
