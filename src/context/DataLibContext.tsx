@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react'
 import { API } from '../config/constants'
 
 export interface Connector {
@@ -87,6 +87,9 @@ export function DataLibProvider({ children }: { children: ReactNode }) {
     const r = await fetch(`${API}/connectors`)
     if (r.ok) setConnectors(await r.json())
   }, [])
+
+  // Fetch connectors on mount so Chat tab shows them without visiting Connectors tab first
+  useEffect(() => { fetchConnectors() }, [fetchConnectors])
 
   const addConnector = useCallback(async (name: string, type: string, conn_str: string) => {
     const r = await fetch(`${API}/connectors`, {
