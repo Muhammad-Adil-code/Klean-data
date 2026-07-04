@@ -9,7 +9,7 @@ export default function Chat() {
   const [bellRead, setBellRead]     = useState(false)
   const [isListening, setIsListening] = useState(false)
   const [voiceErr, setVoiceErr]       = useState('')
-  const recognitionRef = useRef<SpeechRecognition | null>(null)
+  const recognitionRef = useRef<any>(null)
   const bottomRef  = useRef<HTMLDivElement>(null)
   const infoRef    = useRef<HTMLDivElement>(null)
   const bellRef    = useRef<HTMLDivElement>(null)
@@ -25,7 +25,7 @@ export default function Chat() {
       return
     }
 
-    const rec: SpeechRecognition = new SR()
+    const rec: any = new SR()
     rec.lang = 'en-US'
     rec.interimResults = true
     rec.continuous = false
@@ -33,9 +33,9 @@ export default function Chat() {
 
     rec.onstart  = () => setIsListening(true)
     rec.onend    = () => setIsListening(false)
-    rec.onerror  = (e) => { setIsListening(false); setVoiceErr(`Mic error: ${e.error}`); setTimeout(() => setVoiceErr(''), 3000) }
-    rec.onresult = (e) => {
-      const transcript = Array.from(e.results).map(r => r[0].transcript).join('')
+    rec.onerror  = (e: any) => { setIsListening(false); setVoiceErr(`Mic error: ${e.error}`); setTimeout(() => setVoiceErr(''), 3000) }
+    rec.onresult = (e: any) => {
+      const transcript = Array.from(e.results).map((r: any) => r[0].transcript).join('')
       setInput(transcript)
     }
     rec.start()
