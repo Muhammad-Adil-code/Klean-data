@@ -3,9 +3,19 @@ import { useDataLib, type ChatMessage, type PlanData, type StepResult } from '..
 
 export default function Chat() {
   const { messages, loading, sendMessage, approveAndExecute, connectors, activeConnectorId, setActiveConnector, clearMessages } = useDataLib()
-  const [input, setInput] = useState('')
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const [input, setInput]       = useState('')
+  const [showInfo, setShowInfo] = useState(false)
+  const bottomRef  = useRef<HTMLDivElement>(null)
+  const infoRef    = useRef<HTMLDivElement>(null)
   const activeConn = connectors.find(c => c.id === activeConnectorId)
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (infoRef.current && !infoRef.current.contains(e.target as Node)) setShowInfo(false)
+    }
+    if (showInfo) document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [showInfo])
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages])
 
@@ -72,23 +82,93 @@ export default function Chat() {
           </svg>
         </button>
 
-        {/* Info */}
-        <button
-          onClick={() => { if (messages.length > 1) handleRegenerate() }}
-          style={{
-            width: 38, height: 38, borderRadius: 10, flexShrink: 0,
-            background: '#fff', border: '1px solid var(--border-light)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#6B7280', cursor: 'pointer', transition: 'background 0.13s',
-          }}
-          onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB'}
-          onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = '#fff'}
-          title="Regenerate last response"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-        </button>
+        {/* Info — opens popover */}
+        <div ref={infoRef} style={{ position: 'relative' }}>
+          <button
+            onClick={() => setShowInfo(v => !v)}
+            style={{
+              width: 38, height: 38, borderRadius: 10, flexShrink: 0,
+              background: showInfo ? '#F3F4F6' : '#fff', border: '1px solid var(--border-light)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: showInfo ? 'var(--orange)' : '#6B7280', cursor: 'pointer', transition: 'all 0.13s',
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+          </button>
+
+          {/* Info popover */}
+          {showInfo && (
+            <div style={{
+              position: 'absolute', top: 46, right: 0, width: 280, zIndex: 999,
+              background: '#fff', borderRadius: 14, border: '1px solid var(--border-light)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.12)', overflow: 'hidden',
+              animation: 'fadeIn 0.15s ease-out',
+            }}>
+              {/* Connection */}
+              <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border-light)' }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Active Connection</div>
+                {activeConn ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 34, height: 34, borderRadius: 9, background: 'rgba(249,115,22,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" strokeWidth="1.8" strokeLinecap="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 13, color: '#111827' }}>{activeConn.name}</div>
+                      <div style={{ fontSize: 11, color: '#6B7280', marginTop: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ color: activeConn.status === 'connected' ? '#16A34A' : '#DC2626' }}>●</span>
+                        {activeConn.status === 'connected' ? 'Connected' : activeConn.status}
+                        {activeConn.schema && (
+                          <span>· {activeConn.schema.tables.length} {activeConn.type === 'mongodb' ? 'collections' : 'tables'}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 13, color: '#9CA3AF' }}>No data source selected</div>
+                )}
+              </div>
+
+              {/* Chat stats */}
+              <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-light)', display: 'flex', gap: 16 }}>
+                {[
+                  { label: 'Messages', value: messages.length },
+                  { label: 'Queries', value: messages.filter(m => m.role === 'user').length },
+                  { label: 'Results',  value: messages.filter(m => m.role === 'result').length },
+                ].map(s => (
+                  <div key={s.label} style={{ textAlign: 'center', flex: 1 }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: '#111827' }}>{s.value}</div>
+                    <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 1 }}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Shortcuts */}
+              <div style={{ padding: '12px 16px' }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Shortcuts</div>
+                {[
+                  { key: 'Enter',       desc: 'Send message' },
+                  { key: 'Shift+Enter', desc: 'New line' },
+                ].map(s => (
+                  <div key={s.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <span style={{ fontSize: 12, color: '#374151' }}>{s.desc}</span>
+                    <kbd style={{ fontSize: 11, background: '#F3F4F6', border: '1px solid #E5E7EB', borderRadius: 5, padding: '2px 7px', color: '#374151', fontFamily: 'Inter, sans-serif' }}>{s.key}</kbd>
+                  </div>
+                ))}
+                {messages.length > 1 && (
+                  <button
+                    onClick={() => { handleRegenerate(); setShowInfo(false) }}
+                    style={{ marginTop: 8, width: '100%', padding: '8px', borderRadius: 8, border: '1px solid var(--border-light)', background: '#F9FAFB', fontSize: 12, color: '#374151', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+                    Regenerate last response
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Messages area */}
