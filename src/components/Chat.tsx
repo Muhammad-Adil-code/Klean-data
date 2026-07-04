@@ -487,8 +487,3 @@ function TypingDots() {
     </div>
   )
 }
-
-function dbIcon(type: string) {
-  const map: Record<string, string> = { mongodb: '🍃', csv: '📄', excel: '📊', mysql: '🐬', sqlite: '📦' }
-  return map[type] ?? '🐘'
-}
