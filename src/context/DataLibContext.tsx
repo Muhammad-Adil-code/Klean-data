@@ -143,7 +143,13 @@ export function DataLibProvider({ children }: { children: ReactNode }) {
         push({ role: 'assistant', content: `Error: ${err.detail ?? 'Something went wrong'}` })
         return
       }
-      const plan: PlanData = await r.json()
+      const data = await r.json()
+      // Direct chat reply (greeting / general question — no DB plan needed)
+      if (data.type === 'chat') {
+        push({ role: 'assistant', content: data.reply })
+        return
+      }
+      const plan: PlanData = data
       // Mark all steps approved by default (user can uncheck)
       plan.steps = plan.steps.map(s => ({ ...s, approved: true }))
       push({ role: 'plan', content: plan.message, plan, connector_id: connId })

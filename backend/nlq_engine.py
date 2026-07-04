@@ -35,6 +35,25 @@ def _get_model() -> str: return _get_llm_config()[2]
 
 # ── Step 1: Analyze and plan ───────────────────────────────────────────────
 
+async def _is_general_chat(question: str) -> tuple[bool, str]:
+    """Quick check: is this a greeting/general question with no DB intent?"""
+    system = """You are a classifier. Decide if the user's message is:
+A) General chat / greeting / question not about querying a database (e.g. "hi", "hello", "how are you", "what can you do", "thanks")
+B) A data/database query or request (e.g. "show me sales", "how many users", "find duplicates")
+
+Reply with ONLY a JSON object: {"type": "chat", "reply": "..."} for (A) with a friendly short reply,
+or {"type": "db"} for (B). No markdown, no extra text."""
+    raw = await _llm(system, question)
+    try:
+        clean = raw.strip().lstrip("```json").lstrip("```").rstrip("```").strip()
+        parsed = json.loads(clean)
+        if parsed.get("type") == "chat":
+            return True, parsed.get("reply", "Hi! How can I help you with your data?")
+    except Exception:
+        pass
+    return False, ""
+
+
 async def analyze(
     question: str,
     connector: dict,
@@ -91,13 +110,21 @@ Respond with ONLY a JSON object (no markdown, no explanation) in this exact stru
   "message": "summary message to show the user before they approve"
 }}"""
 
+    # Fast-path: detect greetings / general chat before building a plan
+    is_chat, chat_reply = await _is_general_chat(question)
+    if is_chat:
+        return {"type": "chat", "reply": chat_reply}
+
     raw = await _llm(system, user)
     try:
         # Strip markdown fences if present
         clean = raw.strip().lstrip("```json").lstrip("```").rstrip("```").strip()
-        return json.loads(clean)
+        result = json.loads(clean)
+        result["type"] = "plan"
+        return result
     except json.JSONDecodeError:
         return {
+            "type": "plan",
             "diagnosis": "Could not parse AI response",
             "understanding": raw[:300],
             "steps": [],
