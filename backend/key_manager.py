@@ -29,7 +29,7 @@ FETCH_INTERVAL_SEC = 24 * 3600   # re-download README every 24 hours
 
 # pekpik is the base for all keys from the GitHub README
 PEKPIK_BASE = "https://aiapiv2.pekpik.com/v1"
-PEKPIK_MODEL = "gpt-4o"   # default test model on pekpik
+PEKPIK_MODEL = "gpt-chat-latest"   # most pekpik keys support this alias
 
 # Env-var fallback (user's own key, different base)
 ENV_BASE  = os.getenv("OPENAI_BASE_URL", "https://api.deepseek.com/v1")
@@ -39,6 +39,7 @@ ENV_MODEL = os.getenv("OPENAI_MODEL", "deepseek-chat")
 class KeyManager:
     def __init__(self):
         self._keys: list[str] = []          # ordered: GPT → Claude → Gemini → others
+        self._key_models: dict[str, str] = {}  # key → model hint from comments
         self._active_index: int = 0
         self._active_key: Optional[str] = None
         self._is_pekpik: bool = True         # track whether active key is pekpik or env
@@ -56,7 +57,11 @@ class KeyManager:
         return PEKPIK_BASE if self._is_pekpik else ENV_BASE
 
     def model(self) -> str:
-        return PEKPIK_MODEL if self._is_pekpik else ENV_MODEL
+        if not self._is_pekpik:
+            return ENV_MODEL
+        # Use model hint from key file comment, fall back to default
+        hint = self._key_models.get(self._active_key or "", "")
+        return hint if hint else PEKPIK_MODEL
 
     def start_background_tasks(self):
         asyncio.create_task(self._fetch_loop())
@@ -71,15 +76,20 @@ class KeyManager:
     def _reload_keys(self):
         """Read api_keys.txt. Keys starting with sk- from pekpik go first."""
         file_keys = []
+        new_models: dict[str, str] = {}
         try:
             with open(KEYS_FILE) as f:
-                for line in f:
-                    # Strip inline comments (e.g. "sk-abc123  # gpt-4o")
-                    line = line.split("#")[0].strip()
-                    if line and re.match(r"^sk-[A-Za-z0-9]{20,}$", line):
-                        file_keys.append(line)
+                for raw in f:
+                    parts = raw.split("#", 1)
+                    key_part = parts[0].strip()
+                    model_hint = parts[1].strip() if len(parts) > 1 else ""
+                    if key_part and re.match(r"^sk-[A-Za-z0-9]{20,}$", key_part):
+                        file_keys.append(key_part)
+                        if model_hint:
+                            new_models[key_part] = model_hint
         except FileNotFoundError:
             pass
+        self._key_models.update(new_models)
 
         # Env-var key is always appended last as fallback
         env_key = os.getenv("OPENAI_API_KEY", "").strip()

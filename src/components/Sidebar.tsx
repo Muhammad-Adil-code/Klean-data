@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-export type TabId = 'connectors' | 'chat'
+export type TabId = 'connectors' | 'chat' | 'settings'
 
 interface Props {
   active: TabId
@@ -10,6 +10,7 @@ interface Props {
 const NAV: { id: TabId; icon: string; label: string }[] = [
   { id: 'connectors', icon: '🔌', label: 'Connectors' },
   { id: 'chat',       icon: '💬', label: 'Chat'       },
+  { id: 'settings',   icon: '⚙️', label: 'AI Config'  },
 ]
 
 export default function Sidebar({ active, onSelect }: Props) {

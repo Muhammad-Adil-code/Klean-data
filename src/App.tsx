@@ -3,6 +3,7 @@ import { DataLibProvider } from './context/DataLibContext'
 import Sidebar, { type TabId } from './components/Sidebar'
 import ConnectorsPanel from './components/ConnectorsPanel'
 import Chat from './components/Chat'
+import SettingsPanel from './components/SettingsPanel'
 
 export default function App() {
   const [tab, setTab] = useState<TabId>('connectors')
@@ -24,6 +25,7 @@ export default function App() {
         }}>
           {tab === 'connectors' && <ConnectorsPanel />}
           {tab === 'chat'       && <Chat />}
+          {tab === 'settings'   && <SettingsPanel />}
         </main>
       </div>
     </DataLibProvider>

@@ -15,17 +15,22 @@ OPENAI_BASE  = os.getenv("OPENAI_BASE_URL", "https://api.deepseek.com/v1")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "deepseek-chat")
 
 
-def _get_key() -> str:
+def _get_llm_config() -> tuple[str, str, str]:
+    """Return (api_key, base_url, model). User-configured keys take priority."""
+    from user_settings import get_active_user_provider
+    user = get_active_user_provider()
+    if user:
+        return user["api_key"].strip(), user["base_url"].rstrip("/"), user["model"]
     from key_manager import key_manager
-    return key_manager.get() or os.getenv("OPENAI_API_KEY", "")
+    return (
+        key_manager.get() or os.getenv("OPENAI_API_KEY", ""),
+        key_manager.base_url(),
+        key_manager.model(),
+    )
 
-def _get_base() -> str:
-    from key_manager import key_manager
-    return key_manager.base_url()
-
-def _get_model() -> str:
-    from key_manager import key_manager
-    return key_manager.model()
+def _get_key() -> str:   return _get_llm_config()[0]
+def _get_base() -> str:  return _get_llm_config()[1]
+def _get_model() -> str: return _get_llm_config()[2]
 
 
 # ── Step 1: Analyze and plan ───────────────────────────────────────────────

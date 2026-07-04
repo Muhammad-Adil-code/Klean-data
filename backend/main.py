@@ -37,6 +37,39 @@ app.add_middleware(
 )
 
 
+# ── Settings ───────────────────────────────────────────────────────────────
+
+@app.get("/settings")
+async def get_settings():
+    from user_settings import load_settings
+    return load_settings()
+
+@app.post("/settings")
+async def save_settings_endpoint(body: dict):
+    from user_settings import save_settings
+    save_settings(body)
+    return {"ok": True}
+
+@app.post("/settings/test-key")
+async def test_user_key(body: dict):
+    """Quick test of a specific provider's key."""
+    key = body.get("api_key", "").strip()
+    base_url = body.get("base_url", "").rstrip("/")
+    model = body.get("model", "gpt-4o-mini")
+    if not key or not base_url:
+        raise HTTPException(400, "api_key and base_url required")
+    try:
+        async with __import__("httpx").AsyncClient(timeout=12) as client:
+            resp = await client.post(
+                f"{base_url}/chat/completions",
+                headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+                json={"model": model, "messages": [{"role": "user", "content": "hi"}], "max_tokens": 1},
+            )
+        return {"ok": resp.status_code == 200, "status": resp.status_code, "detail": resp.text[:120]}
+    except Exception as e:
+        return {"ok": False, "status": 0, "detail": str(e)[:120]}
+
+
 # ── Health ─────────────────────────────────────────────────────────────────
 
 @app.get("/health")
