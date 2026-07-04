@@ -35,93 +35,58 @@ def _get_model() -> str: return _get_llm_config()[2]
 
 # ── Step 1: Analyze and plan ───────────────────────────────────────────────
 
-async def _is_general_chat(question: str) -> tuple[bool, str]:
-    """Quick check: is this a greeting/general question with no DB intent?"""
-    system = """You are a classifier. Decide if the user's message is:
-A) General chat / greeting / question not about querying a database (e.g. "hi", "hello", "how are you", "what can you do", "thanks")
-B) A data/database query or request (e.g. "show me sales", "how many users", "find duplicates")
-
-Reply with ONLY a JSON object: {"type": "chat", "reply": "..."} for (A) with a friendly short reply,
-or {"type": "db"} for (B). No markdown, no extra text."""
-    raw = await _llm(system, question)
-    try:
-        clean = raw.strip().lstrip("```json").lstrip("```").rstrip("```").strip()
-        parsed = json.loads(clean)
-        if parsed.get("type") == "chat":
-            return True, parsed.get("reply", "Hi! How can I help you with your data?")
-    except Exception:
-        pass
-    return False, ""
-
-
 async def analyze(
     question: str,
     connector: dict,
     schema: dict,
 ) -> dict:
     """
-    Read schema + question → return a structured plan (no DB touch).
-    Returns:
-    {
-      "diagnosis": "...",
-      "understanding": "...",
-      "steps": [{"id": 1, "description": "...", "code": "SELECT ...", "safe": true}],
-      "requires_write": false,
-      "estimated_rows": 0,
-      "can_parallel": false,
-    }
+    Read schema + question → return either:
+      {"type": "chat",  "reply": "..."}           — for greetings/general chat
+      {"type": "plan",  "steps": [...], ...}       — for actual DB queries
     """
     conn_type = connector["type"]
     schema_text = _format_schema(schema, conn_type)
 
-    system = f"""You are a database analyst assistant. You help users query and clean data.
-Database type: {conn_type}
-User's database schema:
+    system = f"""You are a helpful database assistant. The user has connected a {conn_type} database.
+Database schema:
 {schema_text}
 
-RULES:
-- Never execute anything — only plan.
-- Always output valid JSON matching the exact structure requested.
-- For NL→SQL: write actual executable SQL (or MongoDB aggregation pipelines).
-- Mark steps as safe=true if they are read-only SELECT queries.
-- Mark safe=false for UPDATE, DELETE, INSERT, DROP operations.
-- If question requires reading >50,000 rows, set can_parallel=true.
-- Be concise and honest about what you can and cannot do."""
+DECISION RULE — read the question first:
+  • If it is a greeting, small talk, or question unrelated to the database (e.g. "hi", "how are you", "what can you do", "thanks"), respond with:
+    {{"type": "chat", "reply": "your friendly conversational reply here"}}
+  • If it IS a database question, respond with the full plan JSON below.
 
-    user = f"""Question: {question}
-
-Respond with ONLY a JSON object (no markdown, no explanation) in this exact structure:
+FOR DATABASE QUESTIONS output ONLY valid JSON (no markdown):
 {{
-  "diagnosis": "one sentence describing what the user is asking",
-  "understanding": "what data you will touch and why",
+  "type": "plan",
+  "diagnosis": "one sentence: what the user is asking",
+  "understanding": "what data will be touched and why",
   "steps": [
     {{
       "id": 1,
-      "description": "plain English description of this step",
-      "code": "the actual SQL / mongo aggregation / pandas expression to run",
-      "code_type": "sql" | "mongo_pipeline" | "pandas",
-      "table": "which table/collection this touches",
+      "description": "plain English step description",
+      "code": "executable SQL or mongo pipeline",
+      "code_type": "sql",
+      "table": "table name",
       "safe": true
     }}
   ],
   "requires_write": false,
   "estimated_rows": 0,
   "can_parallel": false,
-  "message": "summary message to show the user before they approve"
-}}"""
+  "message": "short summary to show the user before they approve"
+}}
 
-    # Fast-path: detect greetings / general chat before building a plan
-    is_chat, chat_reply = await _is_general_chat(question)
-    if is_chat:
-        return {"type": "chat", "reply": chat_reply}
+RULES:
+- Never execute anything — only plan.
+- Mark safe=false for UPDATE, DELETE, INSERT, DROP.
+- Output raw JSON only — no markdown fences, no explanation."""
 
-    raw = await _llm(system, user)
+    raw = await _llm(system, question)
     try:
-        # Strip markdown fences if present
         clean = raw.strip().lstrip("```json").lstrip("```").rstrip("```").strip()
-        result = json.loads(clean)
-        result["type"] = "plan"
-        return result
+        return json.loads(clean)
     except json.JSONDecodeError:
         return {
             "type": "plan",
