@@ -81,44 +81,84 @@ export default function Chat() {
       </div>
 
       {/* Input */}
-      <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border-light)', flexShrink: 0, background: '#fff' }}>
+      <div style={{ padding: '16px 24px 24px', borderTop: '1px solid var(--border-light)', flexShrink: 0, background: '#fff' }}>
         <form onSubmit={handleSubmit}>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', border: '1.5px solid var(--border-light)', borderRadius: 14, padding: '8px 8px 8px 16px', background: '#fff', transition: 'border-color 0.2s' }}
-            onFocusCapture={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--orange)'}
-            onBlurCapture={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border-light)'}
-          >
-            <textarea
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={handleKey}
-              placeholder={activeConnectorId ? 'Ask anything about your data…' : 'Select a data source above'}
-              disabled={!activeConnectorId || loading}
-              rows={1}
-              style={{
-                flex: 1, border: 'none', outline: 'none', boxShadow: 'none',
-                fontSize: 14, resize: 'none', lineHeight: 1.5,
-                minHeight: 28, maxHeight: 130,
-                color: 'var(--text-dark)', background: 'transparent',
-                fontFamily: 'Inter, sans-serif', padding: 0,
-              }}
-            />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+
+            {/* Upload icon */}
+            <button type="button" style={{
+              width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+              background: '#F3F4F6', border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6B7280',
+              transition: 'background 0.13s',
+            }}
+              onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = '#E5E7EB'}
+              onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = '#F3F4F6'}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12l4-4 4 4"/>
+              </svg>
+            </button>
+
+            {/* Mic icon */}
+            <button type="button" style={{
+              width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+              background: '#F3F4F6', border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6B7280',
+              transition: 'background 0.13s',
+            }}
+              onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = '#E5E7EB'}
+              onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = '#F3F4F6'}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+              </svg>
+            </button>
+
+            {/* Text input — pill */}
+            <div style={{ flex: 1, position: 'relative' }}>
+              <textarea
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={handleKey}
+                placeholder="Start typing"
+                disabled={!activeConnectorId || loading}
+                rows={1}
+                style={{
+                  width: '100%', padding: '12px 20px',
+                  border: 'none', outline: 'none', boxShadow: 'none',
+                  borderRadius: 99, background: '#F3F4F6',
+                  fontSize: 14, resize: 'none', lineHeight: 1.5,
+                  minHeight: 44, maxHeight: 130,
+                  color: 'var(--text-dark)', fontFamily: 'Inter, sans-serif',
+                  display: 'block',
+                }}
+              />
+            </div>
+
+            {/* Send button — orange rounded square */}
             <button
               type="submit"
               disabled={!input.trim() || !activeConnectorId || loading}
               style={{
-                width: 36, height: 36, borderRadius: 9, flexShrink: 0, alignSelf: 'flex-end',
+                width: 44, height: 44, borderRadius: 12, flexShrink: 0,
                 background: (!input.trim() || !activeConnectorId || loading) ? '#E5E7EB' : 'var(--orange)',
-                color: '#fff', border: 'none', cursor: 'pointer', fontSize: 16,
+                color: '#fff', border: 'none', cursor: (!input.trim() || !activeConnectorId || loading) ? 'not-allowed' : 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'background 0.15s',
+                transition: 'background 0.15s', boxShadow: (!input.trim() || !activeConnectorId || loading) ? 'none' : '0 4px 14px rgba(249,115,22,0.35)',
               }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
             </button>
           </div>
         </form>
-        <div style={{ fontSize: 11, color: 'var(--text-light)', marginTop: 6 }}>
-          Enter to send · Shift+Enter for new line · AI plans first, you approve before anything runs
+
+        {/* Disclaimer */}
+        <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 10, textAlign: 'center', lineHeight: 1.5 }}>
+          Klean Data AI may produce inaccurate information about your data.{' '}
+          <span style={{ color: 'var(--orange)', cursor: 'pointer' }}>Learn more</span>
         </div>
       </div>
     </div>
