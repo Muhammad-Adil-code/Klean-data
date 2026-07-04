@@ -7,10 +7,39 @@ export default function Chat() {
   const [showInfo, setShowInfo]     = useState(false)
   const [showBell, setShowBell]     = useState(false)
   const [bellRead, setBellRead]     = useState(false)
+  const [isListening, setIsListening] = useState(false)
+  const [voiceErr, setVoiceErr]       = useState('')
+  const recognitionRef = useRef<SpeechRecognition | null>(null)
   const bottomRef  = useRef<HTMLDivElement>(null)
   const infoRef    = useRef<HTMLDivElement>(null)
   const bellRef    = useRef<HTMLDivElement>(null)
   const activeConn = connectors.find(c => c.id === activeConnectorId)
+
+  function toggleVoice() {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (!SR) { setVoiceErr('Voice not supported in this browser. Try Chrome.'); setTimeout(() => setVoiceErr(''), 3000); return }
+
+    if (isListening) {
+      recognitionRef.current?.stop()
+      setIsListening(false)
+      return
+    }
+
+    const rec: SpeechRecognition = new SR()
+    rec.lang = 'en-US'
+    rec.interimResults = true
+    rec.continuous = false
+    recognitionRef.current = rec
+
+    rec.onstart  = () => setIsListening(true)
+    rec.onend    = () => setIsListening(false)
+    rec.onerror  = (e) => { setIsListening(false); setVoiceErr(`Mic error: ${e.error}`); setTimeout(() => setVoiceErr(''), 3000) }
+    rec.onresult = (e) => {
+      const transcript = Array.from(e.results).map(r => r[0].transcript).join('')
+      setInput(transcript)
+    }
+    rec.start()
+  }
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -249,18 +278,29 @@ export default function Chat() {
             </button>
 
             {/* Mic icon */}
-            <button type="button" style={{
-              width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-              background: '#F3F4F6', border: 'none', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6B7280',
-              transition: 'background 0.13s',
-            }}
-              onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = '#E5E7EB'}
-              onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = '#F3F4F6'}
+            <button
+              type="button"
+              onClick={toggleVoice}
+              title={isListening ? 'Stop recording' : 'Voice input'}
+              style={{
+                width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: 'none', cursor: 'pointer',
+                background: isListening ? 'rgba(239,68,68,0.12)' : '#F3F4F6',
+                color: isListening ? '#EF4444' : '#6B7280',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'all 0.13s',
+                boxShadow: isListening ? '0 0 0 3px rgba(239,68,68,0.2)' : 'none',
+                animation: isListening ? 'micPulse 1s ease-in-out infinite' : 'none',
+              }}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
-              </svg>
+              {isListening ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#EF4444" stroke="#EF4444" strokeWidth="1.5" strokeLinecap="round">
+                  <rect x="6" y="6" width="12" height="12" rx="2"/>
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+                </svg>
+              )}
             </button>
 
             {/* Data source — database icon with hidden select */}
@@ -335,6 +375,13 @@ export default function Chat() {
             </button>
           </div>
         </form>
+
+        {/* Voice error toast */}
+        {voiceErr && (
+          <div style={{ fontSize: 12, color: '#EF4444', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, padding: '6px 14px', marginTop: 8, textAlign: 'center', animation: 'fadeIn 0.2s ease-out' }}>
+            {voiceErr}
+          </div>
+        )}
 
         {/* Disclaimer */}
         <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 10, textAlign: 'center', lineHeight: 1.5 }}>
