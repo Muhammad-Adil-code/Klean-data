@@ -161,6 +161,7 @@ input:focus, select:focus, textarea:focus {
 @keyframes ping      { 0% { transform:scale(1); opacity:0.6; } 100% { transform:scale(1.7); opacity:0; } }
 @keyframes float     { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-6px); } }
 @keyframes micPulse  { 0%,100% { box-shadow:0 0 0 3px rgba(239,68,68,0.2); } 50% { box-shadow:0 0 0 6px rgba(239,68,68,0.08); } }
+@keyframes spin      { to { transform: rotate(360deg); } }
 .animate-in { animation: fadeIn 0.22s ease-out; }
 
 .toast {

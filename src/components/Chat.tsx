@@ -2,17 +2,38 @@ import { useState, useRef, useEffect } from 'react'
 import { useDataLib, type ChatMessage, type PlanData, type StepResult } from '../context/DataLibContext'
 
 export default function Chat() {
-  const { messages, loading, sendMessage, approveAndExecute, connectors, activeConnectorId, setActiveConnector, clearMessages } = useDataLib()
-  const [input, setInput]           = useState('')
-  const [showInfo, setShowInfo]     = useState(false)
-  const [showBell, setShowBell]     = useState(false)
-  const [bellRead, setBellRead]     = useState(false)
-  const [isListening, setIsListening] = useState(false)
-  const [voiceErr, setVoiceErr]       = useState('')
+  const { messages, loading, sendMessage, approveAndExecute, connectors, activeConnectorId, setActiveConnector, clearMessages, uploadFile } = useDataLib()
+  const [input, setInput]               = useState('')
+  const [showInfo, setShowInfo]         = useState(false)
+  const [showBell, setShowBell]         = useState(false)
+  const [bellRead, setBellRead]         = useState(false)
+  const [isListening, setIsListening]   = useState(false)
+  const [voiceErr, setVoiceErr]         = useState('')
+  const [uploadStatus, setUploadStatus] = useState<'idle'|'uploading'|'done'|'error'>('idle')
+  const [uploadMsg, setUploadMsg]       = useState('')
   const recognitionRef = useRef<any>(null)
+  const fileInputRef   = useRef<HTMLInputElement>(null)
   const bottomRef  = useRef<HTMLDivElement>(null)
   const infoRef    = useRef<HTMLDivElement>(null)
   const bellRef    = useRef<HTMLDivElement>(null)
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadStatus('uploading')
+    setUploadMsg(`Uploading ${file.name}…`)
+    try {
+      await uploadFile(file.name, file)
+      setUploadStatus('done')
+      setUploadMsg(`✓ "${file.name}" added as a data source`)
+    } catch (err) {
+      setUploadStatus('error')
+      setUploadMsg(err instanceof Error ? err.message : 'Upload failed')
+    } finally {
+      e.target.value = ''
+      setTimeout(() => { setUploadStatus('idle'); setUploadMsg('') }, 3500)
+    }
+  }
   const activeConn = connectors.find(c => c.id === activeConnectorId)
 
   function toggleVoice() {
@@ -263,18 +284,33 @@ export default function Chat() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 
             {/* Upload icon */}
-            <button type="button" style={{
-              width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-              background: '#F3F4F6', border: 'none', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6B7280',
-              transition: 'background 0.13s',
-            }}
-              onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = '#E5E7EB'}
-              onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = '#F3F4F6'}
+            <input ref={fileInputRef} type="file" accept=".csv,.xlsx,.xls" style={{ display: 'none' }} onChange={handleFileUpload} />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadStatus === 'uploading'}
+              title="Upload CSV or Excel file"
+              style={{
+                width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: 'none', cursor: 'pointer',
+                background: uploadStatus === 'done' ? 'rgba(22,163,74,0.1)' : uploadStatus === 'error' ? 'rgba(239,68,68,0.1)' : uploadStatus === 'uploading' ? 'rgba(249,115,22,0.1)' : '#F3F4F6',
+                color: uploadStatus === 'done' ? '#16A34A' : uploadStatus === 'error' ? '#EF4444' : uploadStatus === 'uploading' ? 'var(--orange)' : '#6B7280',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'all 0.13s',
+              }}
+              onMouseEnter={e => { if (uploadStatus === 'idle') (e.currentTarget as HTMLButtonElement).style.background = '#E5E7EB' }}
+              onMouseLeave={e => { if (uploadStatus === 'idle') (e.currentTarget as HTMLButtonElement).style.background = '#F3F4F6' }}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12l4-4 4 4"/>
-              </svg>
+              {uploadStatus === 'uploading' ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" style={{ animation: 'spin 1s linear infinite' }}>
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                </svg>
+              ) : uploadStatus === 'done' ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12l4-4 4 4"/>
+                </svg>
+              )}
             </button>
 
             {/* Mic icon */}
@@ -375,6 +411,18 @@ export default function Chat() {
             </button>
           </div>
         </form>
+
+        {/* Upload status toast */}
+        {uploadMsg && (
+          <div style={{
+            fontSize: 12, borderRadius: 8, padding: '6px 14px', marginTop: 8, textAlign: 'center', animation: 'fadeIn 0.2s ease-out',
+            color: uploadStatus === 'done' ? '#16A34A' : uploadStatus === 'error' ? '#EF4444' : 'var(--orange)',
+            background: uploadStatus === 'done' ? 'rgba(22,163,74,0.08)' : uploadStatus === 'error' ? 'rgba(239,68,68,0.08)' : 'rgba(249,115,22,0.08)',
+            border: `1px solid ${uploadStatus === 'done' ? 'rgba(22,163,74,0.2)' : uploadStatus === 'error' ? 'rgba(239,68,68,0.2)' : 'rgba(249,115,22,0.2)'}`,
+          }}>
+            {uploadMsg}
+          </div>
+        )}
 
         {/* Voice error toast */}
         {voiceErr && (
