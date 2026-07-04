@@ -18,7 +18,7 @@ async def get_schema(conn_type: str, conn_str: str) -> dict:
 
 async def run_query(conn_type: str, conn_str: str, sql: str, limit: int = 500) -> list[dict]:
     """Run a SELECT query and return rows as list of dicts."""
-    safe = sql.strip()
+    safe = sql.strip().rstrip(";").strip()
     if not safe.upper().startswith("SELECT"):
         raise ValueError("Only SELECT queries allowed in read-only mode")
     if "LIMIT" not in safe.upper():
@@ -34,6 +34,7 @@ async def run_query(conn_type: str, conn_str: str, sql: str, limit: int = 500) -
 
 async def run_write(conn_type: str, conn_str: str, sql: str) -> int:
     """Run an INSERT/UPDATE/DELETE. Returns rows affected."""
+    sql = sql.strip().rstrip(";").strip()
     if conn_type in ("postgresql", "postgres"):
         return await _pg_write(conn_str, sql)
     if conn_type == "mysql":
