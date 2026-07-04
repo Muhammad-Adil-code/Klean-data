@@ -146,7 +146,7 @@ export function DataLibProvider({ children }: { children: ReactNode }) {
       const data = await r.json()
       // Direct chat reply (greeting / general question — no DB plan needed)
       if (data.type === 'chat') {
-        push({ role: 'assistant', content: data.reply })
+        push({ role: 'assistant', content: data.reply || "Hello! How can I help you with your data?" })
         return
       }
       const plan: PlanData = data

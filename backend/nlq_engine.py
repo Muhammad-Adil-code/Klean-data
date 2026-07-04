@@ -52,10 +52,11 @@ async def analyze(
 Database schema:
 {schema_text}
 
-DECISION RULE — read the question first:
-  • ONLY classify as chat if the message is a pure greeting or completely unrelated to data (e.g. "hi", "hello", "how are you", "thanks", "bye").
-  • ANY question about the data, tables, records, columns, counts, or contents — even vague ones like "what is in the table?", "show me data", "what tables are there?" — MUST use the full plan JSON below.
-  • When the question is vague (e.g. "show me everything"), pick the most relevant table from the schema and write a sensible query for it.
+DECISION RULE — check the message intent first:
+  • If it is a pure greeting or totally unrelated to data (e.g. "hi", "hello", "how are you", "thanks", "bye", "what can you do"), respond ONLY with this exact JSON:
+    {{"type": "chat", "reply": "<your friendly reply text here>"}}
+    The "reply" field MUST be a non-empty string with your actual response.
+  • ANY question about data, tables, records, columns, counts, or contents — even vague (e.g. "show me data", "what is in the table?") — MUST use the full plan JSON below. Pick the most relevant table when the question is vague.
 
 FOR DATABASE QUESTIONS output ONLY valid JSON (no markdown):
 {{
