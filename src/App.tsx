@@ -14,16 +14,26 @@ function AppShell() {
 
   return (
     <DataLibProvider>
-      <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#fff' }}>
+      <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--sidebar-bg)' }}>
         <Sidebar active={tab} onSelect={setTab} />
 
-        <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#fff' }}>
-          {tab === 'connectors' && <ConnectorsPanel />}
-          {tab === 'chat'       && <Chat />}
-          {tab === 'settings'   && <SettingsPanel />}
-        </main>
+        {/* White rounded card wrapping main + history */}
+        <div style={{
+          flex: 1, display: 'flex', overflow: 'hidden',
+          margin: '12px 12px 12px 0',
+          borderRadius: 18,
+          border: '1.5px solid rgba(255,255,255,0.10)',
+          boxShadow: '0 0 0 1px rgba(0,0,0,0.18), 0 8px 40px rgba(0,0,0,0.28)',
+          background: '#fff',
+        }}>
+          <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#fff', borderRadius: tab === 'chat' ? '18px 0 0 18px' : 18 }}>
+            {tab === 'connectors' && <ConnectorsPanel />}
+            {tab === 'chat'       && <Chat />}
+            {tab === 'settings'   && <SettingsPanel />}
+          </main>
 
-        {tab === 'chat' && <HistoryPanel />}
+          {tab === 'chat' && <HistoryPanel />}
+        </div>
       </div>
     </DataLibProvider>
   )

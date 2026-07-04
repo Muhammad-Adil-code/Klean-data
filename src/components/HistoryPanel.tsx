@@ -42,6 +42,7 @@ export default function HistoryPanel() {
       width: 280, minWidth: 280, flexShrink: 0,
       background: '#F0F0F0',
       borderLeft: '1px solid #E0E0E0',
+      borderRadius: '0 16px 16px 0',
       display: 'flex', flexDirection: 'column',
       overflow: 'hidden',
     }}>
