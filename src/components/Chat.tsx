@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useDataLib, type ChatMessage, type PlanData, type StepResult } from '../context/DataLibContext'
+import KdLogo from './KdLogo'
 
 export default function Chat() {
   const { messages, loading, sendMessage, approveAndExecute, connectors, activeConnectorId, setActiveConnector, clearMessages, uploadFile } = useDataLib()
@@ -740,13 +741,9 @@ function EmptyState({ connName, onSend }: { connName: string; onSend: (q: string
 
 function AiAvatar() {
   return (
-    <div style={{
-      width: 30, height: 30, borderRadius: '50%',
-      background: 'rgba(249,115,22,0.12)',
-      border: '1.5px solid rgba(249,115,22,0.3)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: 14, flexShrink: 0,
-    }}>🤖</div>
+    <div style={{ flexShrink: 0, borderRadius: '50%', overflow: 'hidden', width: 32, height: 32, border: '1.5px solid rgba(249,115,22,0.25)' }}>
+      <KdLogo size={32} />
+    </div>
   )
 }
 
