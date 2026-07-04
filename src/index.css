@@ -140,15 +140,16 @@ input::placeholder, textarea::placeholder { color: var(--text-light); }
 
 .animate-fadein { animation: fadeIn 0.22s ease-out; }
 
-input, select, textarea {
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea {
   width: 100%; padding: 9px 12px;
   border: 1.5px solid var(--border-light);
   border-radius: var(--radius); background: #fff;
   color: var(--text-dark); font-size: 13px;
 }
-input:focus, select:focus, textarea:focus {
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus, select:focus, textarea:focus {
   border-color: var(--orange); box-shadow: 0 0 0 3px rgba(249,115,22,0.1); outline: none;
 }
+input[type="checkbox"] { width: auto; padding: 0; border: none; background: none; accentColor: var(--orange); cursor: pointer; }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
