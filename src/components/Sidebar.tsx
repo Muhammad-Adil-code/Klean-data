@@ -1,113 +1,170 @@
 import { useState } from 'react'
+import KdLogo from './KdLogo'
+import ProModal from './ProModal'
 
 export type TabId = 'connectors' | 'chat' | 'settings'
+
+interface NavItem {
+  id: TabId | 'templates' | 'projects' | 'statistics'
+  icon: React.ReactNode
+  label: string
+  pro?: boolean
+  tab?: TabId
+}
 
 interface Props {
   active: TabId
   onSelect: (id: TabId) => void
 }
 
-const NAV: { id: TabId; icon: string; label: string }[] = [
-  { id: 'connectors', icon: '🔌', label: 'Connectors' },
-  { id: 'chat',       icon: '💬', label: 'Chat'       },
-  { id: 'settings',   icon: '⚙️', label: 'AI Config'  },
+const NAV: NavItem[] = [
+  {
+    id: 'chat',
+    label: 'AI Chat',
+    tab: 'chat',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'connectors',
+    label: 'Connectors',
+    tab: 'connectors',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M5 12h14M12 5l7 7-7 7" />
+      </svg>
+    ),
+  },
+  {
+    id: 'settings',
+    label: 'AI Config',
+    tab: 'settings',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="3" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
+      </svg>
+    ),
+  },
+  {
+    id: 'templates',
+    label: 'Templates',
+    pro: true,
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
+      </svg>
+    ),
+  },
+  {
+    id: 'projects',
+    label: 'My Projects',
+    pro: true,
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M2 7a2 2 0 0 1 2-2h4l2 3h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'statistics',
+    label: 'Statistics',
+    pro: true,
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
+      </svg>
+    ),
+  },
 ]
 
 export default function Sidebar({ active, onSelect }: Props) {
-  const [open, setOpen] = useState(false)
+  const [showProModal, setShowProModal] = useState(false)
+
+  function handleClick(item: NavItem) {
+    if (item.pro) { setShowProModal(true); return }
+    if (item.tab) onSelect(item.tab)
+  }
 
   return (
-    <aside style={{
-      width: open ? 220 : 60,
-      minWidth: open ? 220 : 60,
-      background: 'linear-gradient(111.84deg,rgba(6,11,38,0.97) 59.3%,rgba(26,31,55,0.9) 100%)',
-      borderRight: '1.5px solid rgba(255,255,255,0.06)',
-      display: 'flex', flexDirection: 'column',
-      transition: 'width 0.25s ease, min-width 0.25s ease',
-      overflow: 'hidden', flexShrink: 0,
-    }}>
-
-      {/* Logo */}
-      <div style={{
-        padding: open ? '18px 18px' : '18px 0',
-        display: 'flex', alignItems: 'center', gap: 10,
-        justifyContent: open ? 'flex-start' : 'center',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
-        cursor: 'pointer',
-      }} onClick={() => setOpen(v => !v)}>
-        <KdLogo />
-        {open && (
-          <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: '-0.3px', color: '#fff', whiteSpace: 'nowrap' }}>
-            Klean<span className="gradient-text">Data</span>
-          </span>
-        )}
-        {open && (
-          <button
-            onClick={e => { e.stopPropagation(); setOpen(false) }}
-            style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.5)', fontSize: 12, width: 24, height: 24, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-          >✕</button>
-        )}
-      </div>
-
-      {!open && (
-        <button
-          onClick={() => setOpen(true)}
-          style={{ background: 'none', color: 'rgba(255,255,255,0.35)', fontSize: 18, padding: '8px 0', width: '100%' }}
-        >›</button>
-      )}
-
-      {/* Nav */}
-      <nav style={{ flex: 1, padding: '12px 0' }}>
-        {NAV.map(item => {
-          const isActive = active === item.id
-          return (
-            <button
-              key={item.id}
-              onClick={() => onSelect(item.id)}
-              style={{
-                width: '100%', display: 'flex', alignItems: 'center',
-                gap: 10, padding: open ? '11px 18px' : '11px 0',
-                justifyContent: open ? 'flex-start' : 'center',
-                background: isActive
-                  ? 'linear-gradient(90deg,rgba(67,24,255,0.22) 0%,rgba(67,24,255,0.05) 100%)'
-                  : 'none',
-                color: isActive ? '#868cff' : 'rgba(255,255,255,0.45)',
-                borderLeft: isActive ? '3px solid #4318FF' : '3px solid transparent',
-                fontSize: 13, fontWeight: isActive ? 600 : 400,
-                transition: 'all 0.15s',
-              }}
-            >
-              <span style={{ fontSize: 16, flexShrink: 0 }}>{item.icon}</span>
-              {open && <span style={{ whiteSpace: 'nowrap' }}>{item.label}</span>}
-            </button>
-          )
-        })}
-      </nav>
-
-      {/* Footer */}
-      <div style={{
-        padding: open ? '12px 18px' : '12px 0',
-        borderTop: '1px solid rgba(255,255,255,0.05)',
-        display: 'flex', justifyContent: open ? 'flex-start' : 'center',
-        alignItems: 'center',
+    <>
+      <aside style={{
+        width: 250, minWidth: 250, flexShrink: 0,
+        background: 'var(--sidebar-bg)',
+        borderRight: '1px solid var(--sidebar-border)',
+        display: 'flex', flexDirection: 'column',
+        overflow: 'hidden',
       }}>
-        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap' }}>
-          {open ? 'Klean Data v1.0' : 'KD'}
-        </span>
-      </div>
-    </aside>
-  )
-}
+        {/* Brand */}
+        <div style={{ padding: '20px 18px 16px', borderBottom: '1px solid var(--sidebar-border)', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <KdLogo size={36} dark />
+            <span style={{ fontWeight: 800, fontSize: 17, color: '#fff', letterSpacing: '-0.4px' }}>
+              Klean<span style={{ color: 'var(--orange)' }}>Data</span>
+            </span>
+          </div>
+        </div>
 
-function KdLogo() {
-  return (
-    <div style={{
-      width: 34, height: 34, borderRadius: 9,
-      background: 'linear-gradient(135deg,#4318FF 0%,#868cff 100%)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      flexShrink: 0, boxShadow: '0 4px 14px rgba(67,24,255,0.45)',
-    }}>
-      <span style={{ color: '#fff', fontWeight: 800, fontSize: 13, letterSpacing: '-0.5px', fontFamily: 'DM Sans, sans-serif' }}>KD</span>
-    </div>
+        {/* Nav */}
+        <nav style={{ flex: 1, padding: '10px 10px', overflowY: 'auto' }}>
+          {NAV.map(item => {
+            const isActive = item.tab === active && !item.pro
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleClick(item)}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: 11,
+                  padding: '10px 12px', borderRadius: 9, marginBottom: 2,
+                  background: isActive ? 'var(--nav-active-bg)' : 'transparent',
+                  color: isActive ? 'var(--nav-active-text)' : 'var(--nav-text)',
+                  borderLeft: isActive ? `3px solid var(--nav-active-border)` : '3px solid transparent',
+                  fontSize: 13, fontWeight: isActive ? 600 : 400,
+                  textAlign: 'left', border: 'none',
+                  cursor: 'pointer', transition: 'all 0.13s',
+                  paddingLeft: isActive ? 9 : 12,
+                }}
+                onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.background = 'var(--nav-hover-bg)' }}
+                onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+              >
+                <span style={{ flexShrink: 0, opacity: isActive ? 1 : 0.6 }}>{item.icon}</span>
+                <span style={{ flex: 1 }}>{item.label}</span>
+                {item.pro && <span className="pro-badge">PRO</span>}
+              </button>
+            )
+          })}
+        </nav>
+
+        {/* Pro Plan Card */}
+        <div style={{ padding: '0 10px 16px', flexShrink: 0 }}>
+          <div
+            onClick={() => setShowProModal(true)}
+            style={{
+              borderRadius: 12, padding: '14px 16px', cursor: 'pointer',
+              background: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
+              boxShadow: '0 4px 18px rgba(249,115,22,0.35)',
+              transition: 'transform 0.15s, box-shadow 0.15s',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 6px 22px rgba(249,115,22,0.45)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ''; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 18px rgba(249,115,22,0.35)' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+              <span style={{ fontSize: 16 }}>⭐</span>
+              <span style={{ color: '#fff', fontWeight: 700, fontSize: 13 }}>Upgrade to Pro</span>
+            </div>
+            <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 11, lineHeight: 1.5 }}>
+              Unlock templates, projects, advanced statistics and more.
+            </div>
+            <div style={{ marginTop: 10, background: 'rgba(255,255,255,0.2)', borderRadius: 6, padding: '6px 12px', color: '#fff', fontSize: 12, fontWeight: 600, textAlign: 'center' }}>
+              Get Pro Plan →
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      {showProModal && <ProModal onClose={() => setShowProModal(false)} />}
+    </>
   )
 }
