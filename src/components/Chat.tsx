@@ -39,27 +39,6 @@ export default function Chat() {
           AI Chat Helper
         </span>
 
-        {/* Data source selector — compact chip */}
-        {connectors.length > 0 && (
-          <select
-            value={activeConnectorId ?? ''}
-            onChange={e => setActiveConnector(e.target.value || null)}
-            style={{
-              padding: '5px 10px', fontSize: 12,
-              border: '1px solid var(--border-light)', borderRadius: 99,
-              background: '#F9FAFB', color: 'var(--text-dark)', outline: 'none',
-              boxShadow: 'none', width: 'auto', cursor: 'pointer',
-            }}
-          >
-            <option value="">Select source…</option>
-            {connectors.map(c => (
-              <option key={c.id} value={c.id}>
-                {c.name}{c.status === 'connected' ? ' ✓' : ''}
-              </option>
-            ))}
-          </select>
-        )}
-
         {/* Search — pill */}
         <div style={{ flex: 1, maxWidth: 280, marginLeft: 'auto', position: 'relative' }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round"
@@ -154,6 +133,39 @@ export default function Chat() {
                 <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
               </svg>
             </button>
+
+            {/* Data source — database icon with hidden select */}
+            <div style={{ position: 'relative', flexShrink: 0 }}
+              title={activeConn ? `Source: ${activeConn.name}` : 'Select data source'}
+            >
+              <div style={{
+                width: 44, height: 44, borderRadius: 12,
+                background: activeConnectorId ? 'rgba(249,115,22,0.1)' : '#F3F4F6',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: activeConnectorId ? 'var(--orange)' : '#6B7280',
+                pointerEvents: 'none',
+              }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                </svg>
+              </div>
+              <select
+                value={activeConnectorId ?? ''}
+                onChange={e => setActiveConnector(e.target.value || null)}
+                style={{
+                  position: 'absolute', inset: 0, opacity: 0,
+                  width: '100%', height: '100%', cursor: 'pointer',
+                  border: 'none', background: 'transparent',
+                }}
+              >
+                <option value="">No source selected</option>
+                {connectors.map(c => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}{c.status === 'connected' ? ' ✓' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             {/* Text input — pill */}
             <div style={{ flex: 1, position: 'relative' }}>
