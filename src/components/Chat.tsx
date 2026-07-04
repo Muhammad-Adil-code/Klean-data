@@ -289,7 +289,7 @@ export default function Chat() {
 
         {/* Disclaimer */}
         <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 10, textAlign: 'center', lineHeight: 1.5 }}>
-          Klean Data AI may produce inaccurate information about your data.{' '}
+          AI responses are based on your data. Always verify before making decisions.{' '}
           <span style={{ color: 'var(--orange)', cursor: 'pointer' }}>Learn more</span>
         </div>
       </div>
