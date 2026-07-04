@@ -31,45 +31,85 @@ export default function Chat() {
 
       {/* Top bar */}
       <div style={{
-        padding: '14px 24px', borderBottom: '1px solid var(--border-light)',
+        padding: '14px 20px', borderBottom: '1px solid var(--border-light)',
         display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0, background: '#fff',
       }}>
-        <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-dark)' }}>AI Chat</span>
+        {/* Title */}
+        <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--text-dark)', whiteSpace: 'nowrap' }}>
+          AI Chat Helper
+        </span>
 
-        {connectors.length === 0 ? (
-          <span style={{ color: 'var(--text-gray)', fontSize: 12 }}>← Connect a data source first</span>
-        ) : (
+        {/* Data source selector — compact chip */}
+        {connectors.length > 0 && (
           <select
             value={activeConnectorId ?? ''}
             onChange={e => setActiveConnector(e.target.value || null)}
-            style={{ padding: '6px 12px', fontSize: 12, border: '1px solid var(--border-light)', borderRadius: 8, background: '#fff', color: 'var(--text-dark)', outline: 'none' }}
+            style={{
+              padding: '5px 10px', fontSize: 12,
+              border: '1px solid var(--border-light)', borderRadius: 99,
+              background: '#F9FAFB', color: 'var(--text-dark)', outline: 'none',
+              boxShadow: 'none', width: 'auto', cursor: 'pointer',
+            }}
           >
-            <option value="">Select data source…</option>
+            <option value="">Select source…</option>
             {connectors.map(c => (
               <option key={c.id} value={c.id}>
-                {dbIcon(c.type)} {c.name}{c.status === 'connected' ? ' ✓' : ''}
+                {c.name}{c.status === 'connected' ? ' ✓' : ''}
               </option>
             ))}
           </select>
         )}
 
-        {activeConn?.schema && (
-          <span style={{ fontSize: 11, color: 'var(--text-gray)', background: 'var(--bg-code)', padding: '3px 9px', borderRadius: 99 }}>
-            {activeConn.schema.tables.length} {activeConn.type === 'mongodb' ? 'collections' : 'tables'}
-          </span>
-        )}
-
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-          {messages.length > 1 && (
-            <button className="btn-ghost" style={{ fontSize: 12 }} onClick={handleRegenerate}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
-              Regenerate
-            </button>
-          )}
-          {messages.length > 0 && (
-            <button className="btn-ghost" style={{ fontSize: 12 }} onClick={clearMessages}>Clear</button>
-          )}
+        {/* Search — pill */}
+        <div style={{ flex: 1, maxWidth: 280, marginLeft: 'auto', position: 'relative' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round"
+            style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input
+            placeholder="Search"
+            style={{
+              width: '100%', padding: '9px 16px 9px 36px',
+              border: '1px solid var(--border-light)', borderRadius: 99,
+              background: '#F9FAFB', fontSize: 13, color: 'var(--text-dark)',
+              outline: 'none', boxShadow: 'none',
+            }}
+          />
         </div>
+
+        {/* Bell */}
+        <button
+          style={{
+            width: 38, height: 38, borderRadius: 10, flexShrink: 0,
+            background: '#fff', border: '1px solid var(--border-light)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#6B7280', cursor: 'pointer', transition: 'background 0.13s',
+          }}
+          onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB'}
+          onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = '#fff'}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+        </button>
+
+        {/* Info */}
+        <button
+          onClick={() => { if (messages.length > 1) handleRegenerate() }}
+          style={{
+            width: 38, height: 38, borderRadius: 10, flexShrink: 0,
+            background: '#fff', border: '1px solid var(--border-light)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#6B7280', cursor: 'pointer', transition: 'background 0.13s',
+          }}
+          onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB'}
+          onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = '#fff'}
+          title="Regenerate last response"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </button>
       </div>
 
       {/* Messages area */}
