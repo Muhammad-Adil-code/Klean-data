@@ -8,6 +8,12 @@ import SettingsPanel from './components/SettingsPanel'
 import HistoryPanel from './components/HistoryPanel'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import { isLoggedIn } from './auth'
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  if (!isLoggedIn()) return <Navigate to="/login" replace />
+  return <>{children}</>
+}
 
 function AppShell() {
   const [tab, setTab] = useState<TabId>('chat')
@@ -45,8 +51,8 @@ export default function App() {
       <Routes>
         <Route path="/login"  element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/app"    element={<AppShell />} />
-        <Route path="*"       element={<Navigate to="/app" replace />} />
+        <Route path="/app"    element={<ProtectedRoute><AppShell /></ProtectedRoute>} />
+        <Route path="*"       element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   )

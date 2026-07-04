@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import KdLogo from '../components/KdLogo'
+import { saveUser, getUser } from '../auth'
 
 export default function Signup() {
   const navigate = useNavigate()
@@ -10,12 +11,20 @@ export default function Signup() {
   const [loading, setLoading]   = useState(false)
   const [err, setErr]           = useState('')
 
+  // Already logged in
+  if (getUser()) { navigate('/app', { replace: true }); return null }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!name || !email || !password) { setErr('Please fill in all fields'); return }
-    if (password.length < 6)          { setErr('Password must be at least 6 characters'); return }
+    setErr('')
+    if (!name.trim() || !email.trim() || !password) { setErr('Please fill in all fields'); return }
+    if (!email.includes('@')) { setErr('Enter a valid email'); return }
+    if (password.length < 6) { setErr('Password must be at least 6 characters'); return }
     setLoading(true)
-    setTimeout(() => { setLoading(false); navigate('/app') }, 800)
+    setTimeout(() => {
+      saveUser({ name: name.trim(), email: email.trim().toLowerCase() })
+      navigate('/app', { replace: true })
+    }, 700)
   }
 
   return (

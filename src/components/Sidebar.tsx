@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import KdLogo from './KdLogo'
 import ProModal from './ProModal'
+import { getUser, logout } from '../auth'
 
 export type TabId = 'connectors' | 'chat' | 'settings'
 
@@ -82,6 +84,17 @@ const NAV: NavItem[] = [
 
 export default function Sidebar({ active, onSelect }: Props) {
   const [showProModal, setShowProModal] = useState(false)
+  const navigate = useNavigate()
+  const user = getUser()
+
+  function handleLogout() {
+    logout()
+    navigate('/login', { replace: true })
+  }
+
+  const initials = user
+    ? user.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+    : '?'
 
   function handleClick(item: NavItem) {
     if (item.pro) { setShowProModal(true); return }
@@ -137,8 +150,51 @@ export default function Sidebar({ active, onSelect }: Props) {
           })}
         </nav>
 
+        {/* Profile section */}
+        {user && (
+          <div style={{ padding: '10px 12px 0', flexShrink: 0, borderTop: '1px solid var(--sidebar-border)' }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '10px 10px', borderRadius: 10,
+              background: 'rgba(255,255,255,0.04)',
+            }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
+                background: 'linear-gradient(135deg, #F97316, #EA580C)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#fff', fontWeight: 700, fontSize: 14, letterSpacing: '0.5px',
+              }}>
+                {initials}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ color: '#fff', fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {user.name}
+                </div>
+                <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {user.email}
+                </div>
+              </div>
+              <button
+                onClick={handleLogout}
+                title="Sign out"
+                style={{
+                  flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer',
+                  color: 'rgba(255,255,255,0.4)', padding: 4, borderRadius: 6,
+                  display: 'flex', alignItems: 'center', transition: 'color 0.12s',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#F97316')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Pro Plan Card */}
-        <div style={{ padding: '0 12px 18px', flexShrink: 0 }}>
+        <div style={{ padding: '10px 12px 18px', flexShrink: 0 }}>
           <div
             onClick={() => setShowProModal(true)}
             style={{
