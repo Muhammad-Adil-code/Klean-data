@@ -150,13 +150,40 @@ export default function Sidebar({ active, onSelect }: Props) {
           })}
         </nav>
 
+        {/* Pro Plan Card */}
+        <div style={{ padding: '0 12px 10px', flexShrink: 0 }}>
+          <div
+            onClick={() => setShowProModal(true)}
+            style={{
+              borderRadius: 12, padding: '14px 16px', cursor: 'pointer',
+              background: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
+              boxShadow: '0 4px 18px rgba(249,115,22,0.35)',
+              transition: 'transform 0.15s, box-shadow 0.15s',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 6px 22px rgba(249,115,22,0.45)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ''; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 18px rgba(249,115,22,0.35)' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+              <span style={{ fontSize: 16 }}>⭐</span>
+              <span style={{ color: '#fff', fontWeight: 700, fontSize: 13 }}>Upgrade to Pro</span>
+            </div>
+            <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 11, lineHeight: 1.5 }}>
+              Unlock templates, projects, advanced statistics and more.
+            </div>
+            <div style={{ marginTop: 10, background: 'rgba(255,255,255,0.2)', borderRadius: 6, padding: '6px 12px', color: '#fff', fontSize: 12, fontWeight: 600, textAlign: 'center' }}>
+              Get Pro Plan →
+            </div>
+          </div>
+        </div>
+
         {/* Profile section */}
         {user && (
-          <div style={{ padding: '10px 12px 0', flexShrink: 0, borderTop: '1px solid var(--sidebar-border)' }}>
+          <div style={{ padding: '0 12px 14px', flexShrink: 0 }}>
             <div style={{
               display: 'flex', alignItems: 'center', gap: 10,
               padding: '10px 10px', borderRadius: 10,
-              background: 'rgba(255,255,255,0.04)',
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid var(--sidebar-border)',
             }}>
               <div style={{
                 width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
@@ -192,32 +219,6 @@ export default function Sidebar({ active, onSelect }: Props) {
             </div>
           </div>
         )}
-
-        {/* Pro Plan Card */}
-        <div style={{ padding: '10px 12px 18px', flexShrink: 0 }}>
-          <div
-            onClick={() => setShowProModal(true)}
-            style={{
-              borderRadius: 12, padding: '14px 16px', cursor: 'pointer',
-              background: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
-              boxShadow: '0 4px 18px rgba(249,115,22,0.35)',
-              transition: 'transform 0.15s, box-shadow 0.15s',
-            }}
-            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 6px 22px rgba(249,115,22,0.45)' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ''; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 18px rgba(249,115,22,0.35)' }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-              <span style={{ fontSize: 16 }}>⭐</span>
-              <span style={{ color: '#fff', fontWeight: 700, fontSize: 13 }}>Upgrade to Pro</span>
-            </div>
-            <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 11, lineHeight: 1.5 }}>
-              Unlock templates, projects, advanced statistics and more.
-            </div>
-            <div style={{ marginTop: 10, background: 'rgba(255,255,255,0.2)', borderRadius: 6, padding: '6px 12px', color: '#fff', fontSize: 12, fontWeight: 600, textAlign: 'center' }}>
-              Get Pro Plan →
-            </div>
-          </div>
-        </div>
       </aside>
 
       {showProModal && <ProModal onClose={() => setShowProModal(false)} />}
