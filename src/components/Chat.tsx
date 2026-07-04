@@ -95,11 +95,11 @@ export default function Chat() {
               disabled={!activeConnectorId || loading}
               rows={1}
               style={{
-                flex: 1, border: 'none', outline: 'none',
+                flex: 1, border: 'none', outline: 'none', boxShadow: 'none',
                 fontSize: 14, resize: 'none', lineHeight: 1.5,
                 minHeight: 28, maxHeight: 130,
                 color: 'var(--text-dark)', background: 'transparent',
-                fontFamily: 'Inter, sans-serif',
+                fontFamily: 'Inter, sans-serif', padding: 0,
               }}
             />
             <button
