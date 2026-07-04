@@ -23,7 +23,7 @@ const NAV: NavItem[] = [
     label: 'AI Chat',
     tab: 'chat',
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
       </svg>
     ),
@@ -33,7 +33,7 @@ const NAV: NavItem[] = [
     label: 'Connectors',
     tab: 'connectors',
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M5 12h14M12 5l7 7-7 7" />
       </svg>
     ),
@@ -43,7 +43,7 @@ const NAV: NavItem[] = [
     label: 'AI Config',
     tab: 'settings',
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="3" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
       </svg>
     ),
@@ -53,7 +53,7 @@ const NAV: NavItem[] = [
     label: 'Templates',
     pro: true,
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
       </svg>
     ),
@@ -63,7 +63,7 @@ const NAV: NavItem[] = [
     label: 'My Projects',
     pro: true,
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M2 7a2 2 0 0 1 2-2h4l2 3h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z" />
       </svg>
     ),
@@ -73,7 +73,7 @@ const NAV: NavItem[] = [
     label: 'Statistics',
     pro: true,
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
       </svg>
     ),
@@ -98,17 +98,17 @@ export default function Sidebar({ active, onSelect }: Props) {
         overflow: 'hidden',
       }}>
         {/* Brand */}
-        <div style={{ padding: '20px 18px 16px', borderBottom: '1px solid var(--sidebar-border)', flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <KdLogo size={36} dark />
-            <span style={{ fontWeight: 800, fontSize: 17, color: '#fff', letterSpacing: '-0.4px' }}>
+        <div style={{ padding: '24px 20px 20px', borderBottom: '1px solid var(--sidebar-border)', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <KdLogo size={42} dark />
+            <span style={{ fontWeight: 800, fontSize: 20, color: '#fff', letterSpacing: '-0.5px' }}>
               Klean<span style={{ color: 'var(--orange)' }}>Data</span>
             </span>
           </div>
         </div>
 
         {/* Nav */}
-        <nav style={{ flex: 1, padding: '10px 10px', overflowY: 'auto' }}>
+        <nav style={{ flex: 1, padding: '12px 12px', overflowY: 'auto' }}>
           {NAV.map(item => {
             const isActive = item.tab === active && !item.pro
             return (
@@ -116,15 +116,15 @@ export default function Sidebar({ active, onSelect }: Props) {
                 key={item.id}
                 onClick={() => handleClick(item)}
                 style={{
-                  width: '100%', display: 'flex', alignItems: 'center', gap: 11,
-                  padding: '10px 12px', borderRadius: 9, marginBottom: 2,
+                  width: '100%', display: 'flex', alignItems: 'center', gap: 14,
+                  padding: '13px 14px', borderRadius: 11, marginBottom: 4,
                   background: isActive ? 'var(--nav-active-bg)' : 'transparent',
                   color: isActive ? 'var(--nav-active-text)' : 'var(--nav-text)',
                   borderLeft: isActive ? `3px solid var(--nav-active-border)` : '3px solid transparent',
-                  fontSize: 13, fontWeight: isActive ? 600 : 400,
+                  fontSize: 14, fontWeight: isActive ? 600 : 400,
                   textAlign: 'left', border: 'none',
                   cursor: 'pointer', transition: 'all 0.13s',
-                  paddingLeft: isActive ? 9 : 12,
+                  paddingLeft: isActive ? 11 : 14,
                 }}
                 onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.background = 'var(--nav-hover-bg)' }}
                 onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
@@ -138,7 +138,7 @@ export default function Sidebar({ active, onSelect }: Props) {
         </nav>
 
         {/* Pro Plan Card */}
-        <div style={{ padding: '0 10px 16px', flexShrink: 0 }}>
+        <div style={{ padding: '0 12px 18px', flexShrink: 0 }}>
           <div
             onClick={() => setShowProModal(true)}
             style={{
