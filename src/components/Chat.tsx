@@ -221,6 +221,7 @@ export default function Chat() {
 
       {/* Messages area */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '24px 24px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+        {messages.length === 0 && !activeConnectorId && <NoSourceState />}
         {messages.length === 0 && activeConnectorId && <EmptyState connName={activeConn?.name ?? ''} onSend={sendMessage} />}
         {messages.map(msg => <MessageBubble key={msg.id} msg={msg} onApprove={approveAndExecute} />)}
         {loading && <TypingDots />}
@@ -565,6 +566,39 @@ function DataTable({ rows }: { rows: Record<string, unknown>[] }) {
   )
 }
 
+function NoSourceState() {
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '40px 32px' }}>
+      {/* Animated rings */}
+      <div style={{ position: 'relative', width: 110, height: 110, margin: '0 auto 28px' }}>
+        <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px solid rgba(249,115,22,0.15)', animation: 'ping 2s ease-out infinite' }} />
+        <div style={{ position: 'absolute', inset: 10, borderRadius: '50%', border: '2px solid rgba(249,115,22,0.2)', animation: 'ping 2s ease-out infinite 0.4s' }} />
+        <div style={{ position: 'absolute', inset: 20, borderRadius: '50%', background: 'rgba(249,115,22,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+          </svg>
+        </div>
+      </div>
+
+      <div style={{ fontWeight: 700, fontSize: 20, color: '#111827', marginBottom: 10 }}>
+        Connect a data source first
+      </div>
+      <div style={{ fontSize: 14, color: '#6B7280', lineHeight: 1.7, maxWidth: 340, marginBottom: 28 }}>
+        Select a database from the <span style={{ color: 'var(--orange)', fontWeight: 600 }}>🗄 icon</span> in the input bar below,<br />
+        or go to <span style={{ color: 'var(--orange)', fontWeight: 600 }}>Connectors</span> to add a new one.
+      </div>
+
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+        {['PostgreSQL', 'MongoDB', 'MySQL', 'CSV / Excel'].map(db => (
+          <div key={db} style={{ padding: '8px 16px', border: '1px solid var(--border-light)', borderRadius: 99, background: '#F9FAFB', fontSize: 12, color: '#374151', fontWeight: 500 }}>
+            {db}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function EmptyState({ connName, onSend }: { connName: string; onSend: (q: string) => void }) {
   const examples = [
     'Show me the first 10 rows',
@@ -573,20 +607,31 @@ function EmptyState({ connName, onSend }: { connName: string; onSend: (q: string
     'What are the column names and types?',
   ]
   return (
-    <div style={{ textAlign: 'center', color: 'var(--text-gray)', marginTop: 60 }}>
-      <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(249,115,22,0.1)', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26 }}>💬</div>
-      <div style={{ fontWeight: 700, fontSize: 18, color: 'var(--text-dark)' }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '40px 32px' }}>
+      {/* Animated icon */}
+      <div style={{ position: 'relative', width: 110, height: 110, margin: '0 auto 28px' }}>
+        <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px solid rgba(249,115,22,0.12)', animation: 'ping 2.5s ease-out infinite' }} />
+        <div style={{ position: 'absolute', inset: 12, borderRadius: '50%', background: 'rgba(249,115,22,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'float 3s ease-in-out infinite' }}>
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            <circle cx="9" cy="10" r="1" fill="var(--orange)"/><circle cx="12" cy="10" r="1" fill="var(--orange)"/><circle cx="15" cy="10" r="1" fill="var(--orange)"/>
+          </svg>
+        </div>
+      </div>
+
+      <div style={{ fontWeight: 700, fontSize: 20, color: '#111827', marginBottom: 10 }}>
         Ask anything about <span style={{ color: 'var(--orange)' }}>{connName}</span>
       </div>
-      <div style={{ fontSize: 13, color: 'var(--text-gray)', marginTop: 8, lineHeight: 1.6 }}>
-        I'll read the schema, show a plan, and ask for your approval before running anything.
+      <div style={{ fontSize: 14, color: '#6B7280', lineHeight: 1.7, maxWidth: 360, marginBottom: 28 }}>
+        I'll read the schema, generate a plan, and ask for your approval before running anything.
       </div>
-      <div style={{ marginTop: 24, display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
         {examples.map(ex => (
           <button
             key={ex}
             onClick={() => onSend(ex)}
-            style={{ padding: '8px 14px', border: '1px solid var(--border-light)', borderRadius: 99, background: '#fff', color: 'var(--text-mid)', fontSize: 12, cursor: 'pointer', transition: 'all 0.13s' }}
+            style={{ padding: '9px 16px', border: '1px solid var(--border-light)', borderRadius: 99, background: '#fff', color: 'var(--text-mid)', fontSize: 13, cursor: 'pointer', transition: 'all 0.13s' }}
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--orange)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--orange)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border-light)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-mid)' }}
           >
