@@ -417,15 +417,22 @@ export default function Chat() {
               disabled={!input.trim() || !activeConnectorId || loading}
               style={{
                 width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-                background: (!input.trim() || !activeConnectorId || loading) ? '#E5E7EB' : 'var(--orange)',
+                background: loading ? 'var(--orange)' : (!input.trim() || !activeConnectorId) ? '#E5E7EB' : 'var(--orange)',
                 color: '#fff', border: 'none', cursor: (!input.trim() || !activeConnectorId || loading) ? 'not-allowed' : 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'background 0.15s', boxShadow: (!input.trim() || !activeConnectorId || loading) ? 'none' : '0 4px 14px rgba(249,115,22,0.35)',
+                transition: 'background 0.15s',
+                boxShadow: loading ? '0 4px 14px rgba(249,115,22,0.35)' : (!input.trim() || !activeConnectorId) ? 'none' : '0 4px 14px rgba(249,115,22,0.35)',
               }}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-              </svg>
+              {loading ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'spin 0.8s linear infinite' }}>
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+              )}
             </button>
           </div>
         </form>
