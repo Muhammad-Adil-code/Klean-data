@@ -274,7 +274,14 @@ export default function Chat() {
       <div style={{ flex: 1, overflowY: 'auto', padding: '24px 24px', display: 'flex', flexDirection: 'column', gap: 24 }}>
         {messages.length === 0 && !activeConnectorId && <NoSourceState />}
         {messages.length === 0 && activeConnectorId && <EmptyState connName={activeConn?.name ?? ''} onSend={sendMessage} />}
-        {messages.map(msg => <MessageBubble key={msg.id} msg={msg} onApprove={approveAndExecute} />)}
+        {messages.map((msg, i) => (
+          <MessageBubble
+            key={msg.id}
+            msg={msg}
+            onApprove={approveAndExecute}
+            planDone={msg.role === 'plan' && i < messages.length - 1 && messages[i + 1]?.role === 'result'}
+          />
+        ))}
         {loading && <TypingDots />}
         <div ref={bottomRef} />
       </div>
@@ -442,7 +449,7 @@ export default function Chat() {
   )
 }
 
-function MessageBubble({ msg, onApprove }: { msg: ChatMessage; onApprove: (id: string, ids: number[]) => void }) {
+function MessageBubble({ msg, onApprove, planDone }: { msg: ChatMessage; onApprove: (id: string, ids: number[]) => void; planDone?: boolean }) {
   const [liked, setLiked]     = useState<boolean | null>(null)
   const [copied, setCopied]   = useState(false)
 
@@ -469,7 +476,7 @@ function MessageBubble({ msg, onApprove }: { msg: ChatMessage; onApprove: (id: s
   }
 
   if (msg.role === 'plan' && msg.plan) {
-    return <PlanCard msgId={msg.id} plan={msg.plan} onApprove={onApprove} />
+    return <PlanCard msgId={msg.id} plan={msg.plan} onApprove={onApprove} done={planDone} />
   }
 
   if (msg.role === 'result' && msg.results) {
@@ -519,7 +526,7 @@ function MessageBubble({ msg, onApprove }: { msg: ChatMessage; onApprove: (id: s
   )
 }
 
-function PlanCard({ msgId, plan, onApprove }: { msgId: string; plan: PlanData; onApprove: (id: string, ids: number[]) => void }) {
+function PlanCard({ msgId, plan, onApprove, done }: { msgId: string; plan: PlanData; onApprove: (id: string, ids: number[]) => void; done?: boolean }) {
   const [approved, setApproved] = useState<Set<number>>(new Set(plan.steps.map(s => s.id)))
   const [executed, setExecuted] = useState(false)
 
@@ -585,6 +592,8 @@ function PlanCard({ msgId, plan, onApprove }: { msgId: string; plan: PlanData; o
               </span>
             )}
           </div>
+        ) : done ? (
+          <span style={{ fontSize: 12, color: '#16A34A', fontWeight: 500 }}>✓ Completed</span>
         ) : (
           <span style={{ fontSize: 12, color: 'var(--text-gray)' }}>✓ Running…</span>
         )}

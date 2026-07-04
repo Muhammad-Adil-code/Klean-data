@@ -53,9 +53,9 @@ Database schema:
 {schema_text}
 
 DECISION RULE — read the question first:
-  • If it is a greeting, small talk, or question unrelated to the database (e.g. "hi", "how are you", "what can you do", "thanks"), respond with:
-    {{"type": "chat", "reply": "your friendly conversational reply here"}}
-  • If it IS a database question, respond with the full plan JSON below.
+  • ONLY classify as chat if the message is a pure greeting or completely unrelated to data (e.g. "hi", "hello", "how are you", "thanks", "bye").
+  • ANY question about the data, tables, records, columns, counts, or contents — even vague ones like "what is in the table?", "show me data", "what tables are there?" — MUST use the full plan JSON below.
+  • When the question is vague (e.g. "show me everything"), pick the most relevant table from the schema and write a sensible query for it.
 
 FOR DATABASE QUESTIONS output ONLY valid JSON (no markdown):
 {{
