@@ -143,8 +143,8 @@ export default function ConnectorsPanel() {
         </div>
       )}
 
-      {/* Connector cards */}
-      <div style={{ padding: '0 32px 32px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {/* Connector grid */}
+      <div style={{ padding: '0 32px 32px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16 }}>
         {connectors.map(c => (
           <ConnectorCard
             key={c.id}
@@ -165,72 +165,110 @@ function ConnectorCard({ connector: c, active, onSelect, onTest, onRemove }: {
 }) {
   const [expanded, setExpanded] = useState(false)
 
-  const statusColor = c.status === 'connected' ? 'var(--green)' : c.status === 'error' ? 'var(--red)' : c.status === 'connecting' ? 'var(--yellow)' : 'var(--text-dim)'
+  const statusColor = c.status === 'connected' ? '#16A34A' : c.status === 'error' ? '#DC2626' : c.status === 'connecting' ? '#D97706' : '#9CA3AF'
   const statusLabel = c.status === 'connected' ? 'Connected' : c.status === 'error' ? 'Error' : c.status === 'connecting' ? 'Testing…' : 'Untested'
   const totalRows   = c.schema?.tables.reduce((s, t) => s + (t.rows ?? 0), 0) ?? 0
+  const tableCount  = c.schema?.tables.length ?? 0
+  const unitLabel   = c.type === 'mongodb' ? 'collections' : 'tables'
 
   return (
-    <div className="card animate-fadein" style={{
-      padding: 0, overflow: 'hidden',
-      borderColor: active ? 'rgba(134,140,255,0.4)' : 'var(--border)',
-      background: active ? 'linear-gradient(127.09deg,rgba(67,24,255,0.1) 0%,rgba(10,14,35,0.5) 100%)' : undefined,
-    }}>
-      <div
-        style={{ padding: '14px 18px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 14 }}
-        onClick={onSelect}
-      >
-        <div style={{
-          width: 38, height: 38, borderRadius: 10,
-          background: 'rgba(255,255,255,0.06)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 18, flexShrink: 0,
-        }}>
-          {dbIcon(c.type)}
+    <div className="animate-fadein" style={{
+      background: '#fff',
+      border: `1.5px solid ${active ? 'var(--orange)' : 'var(--border-light)'}`,
+      borderRadius: 16,
+      boxShadow: active ? '0 0 0 3px rgba(249,115,22,0.12)' : '0 1px 4px rgba(0,0,0,0.06)',
+      overflow: 'hidden',
+      cursor: 'pointer',
+      transition: 'all 0.15s',
+      display: 'flex', flexDirection: 'column',
+    }}
+      onClick={onSelect}
+      onMouseEnter={e => { if (!active) (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(0,0,0,0.1)' }}
+      onMouseLeave={e => { if (!active) (e.currentTarget as HTMLDivElement).style.boxShadow = '0 1px 4px rgba(0,0,0,0.06)' }}
+    >
+      {/* Card top */}
+      <div style={{ padding: '20px 18px 14px' }}>
+        {/* Icon + remove */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: 12, fontSize: 24,
+            background: active ? 'rgba(249,115,22,0.1)' : '#F9FAFB',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: `1px solid ${active ? 'rgba(249,115,22,0.2)' : 'var(--border-light)'}`,
+          }}>
+            {dbIcon(c.type)}
+          </div>
+          <button
+            className="btn danger"
+            style={{ padding: '4px 8px', fontSize: 11, borderRadius: 8 }}
+            onClick={e => { e.stopPropagation(); onRemove() }}
+          >✕</button>
         </div>
 
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {c.name}
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ color: statusColor }}>● {statusLabel}</span>
-            <span style={{ color: 'var(--text-dim)' }}>
-              {c.type.toUpperCase()}
-            </span>
-            {c.schema && (
-              <span style={{ color: 'var(--text-dim)' }}>
-                {c.schema.tables.length} {c.type === 'mongodb' ? 'collections' : 'tables'} · {totalRows.toLocaleString()} rows
-              </span>
-            )}
-          </div>
+        {/* Name */}
+        <div style={{ fontWeight: 700, fontSize: 14, color: '#111827', marginBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {c.name}
         </div>
 
-        <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-          <button className="btn" style={{ padding: '5px 12px', fontSize: 12 }} onClick={e => { e.stopPropagation(); onTest() }}>
-            Test
-          </button>
-          {c.schema && (
-            <button className="btn" style={{ padding: '5px 10px', fontSize: 12 }} onClick={e => { e.stopPropagation(); setExpanded(v => !v) }}>
-              {expanded ? '▲' : '▼'}
-            </button>
-          )}
-          <button className="btn danger" style={{ padding: '5px 10px', fontSize: 12 }} onClick={e => { e.stopPropagation(); onRemove() }}>
-            ✕
-          </button>
+        {/* Type + status */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 11, fontWeight: 600, background: '#F3F4F6', color: '#374151', padding: '2px 8px', borderRadius: 99 }}>
+            {c.type.toUpperCase()}
+          </span>
+          <span style={{ fontSize: 11, color: statusColor, display: 'flex', alignItems: 'center', gap: 3, fontWeight: 500 }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: statusColor, display: 'inline-block' }} />
+            {statusLabel}
+          </span>
         </div>
       </div>
 
+      {/* Stats row */}
+      {c.schema && (
+        <div style={{ padding: '10px 18px', borderTop: '1px solid var(--border-light)', background: '#FAFAFA', display: 'flex', gap: 16 }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{tableCount}</div>
+            <div style={{ fontSize: 10, color: '#9CA3AF', textTransform: 'capitalize' }}>{unitLabel}</div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{totalRows.toLocaleString()}</div>
+            <div style={{ fontSize: 10, color: '#9CA3AF' }}>rows</div>
+          </div>
+        </div>
+      )}
+
+      {/* Actions */}
+      <div style={{ padding: '10px 18px', borderTop: '1px solid var(--border-light)', display: 'flex', gap: 8 }}>
+        <button
+          className="btn"
+          style={{ flex: 1, fontSize: 12, justifyContent: 'center', borderRadius: 9 }}
+          onClick={e => { e.stopPropagation(); onTest() }}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Test
+        </button>
+        {c.schema && (
+          <button
+            className="btn"
+            style={{ fontSize: 12, padding: '7px 10px', borderRadius: 9 }}
+            onClick={e => { e.stopPropagation(); setExpanded(v => !v) }}
+          >
+            {expanded ? '▲' : '▼'}
+          </button>
+        )}
+      </div>
+
+      {/* Schema expand */}
       {expanded && c.schema && (
-        <div style={{ borderTop: '1px solid var(--border)', padding: '12px 18px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ borderTop: '1px solid var(--border-light)', padding: '12px 18px', display: 'flex', flexDirection: 'column', gap: 8, background: '#FAFAFA' }}>
           {c.schema.tables.map(t => (
             <div key={t.name} style={{ fontSize: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ color: 'var(--accent-2)', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>{t.name}</span>
+                <span style={{ color: 'var(--orange)', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>{t.name}</span>
                 {t.rows != null && <span className="badge badge-blue">{t.rows.toLocaleString()}</span>}
               </div>
-              <div style={{ color: 'var(--text-dim)', marginTop: 3, paddingLeft: 12, fontFamily: 'var(--font-mono)', fontSize: 11 }}>
-                {t.columns.slice(0, 8).map(c => c.name).join(' · ')}
-                {t.columns.length > 8 && <span style={{ color: 'var(--accent-dim)' }}> +{t.columns.length - 8} more</span>}
+              <div style={{ color: '#9CA3AF', marginTop: 3, paddingLeft: 12, fontFamily: 'var(--font-mono)', fontSize: 11 }}>
+                {t.columns.slice(0, 8).map(col => col.name).join(' · ')}
+                {t.columns.length > 8 && <span style={{ color: 'var(--orange)' }}> +{t.columns.length - 8} more</span>}
               </div>
             </div>
           ))}
