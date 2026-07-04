@@ -3,19 +3,23 @@ import { useDataLib, type ChatMessage, type PlanData, type StepResult } from '..
 
 export default function Chat() {
   const { messages, loading, sendMessage, approveAndExecute, connectors, activeConnectorId, setActiveConnector, clearMessages } = useDataLib()
-  const [input, setInput]       = useState('')
-  const [showInfo, setShowInfo] = useState(false)
+  const [input, setInput]           = useState('')
+  const [showInfo, setShowInfo]     = useState(false)
+  const [showBell, setShowBell]     = useState(false)
+  const [bellRead, setBellRead]     = useState(false)
   const bottomRef  = useRef<HTMLDivElement>(null)
   const infoRef    = useRef<HTMLDivElement>(null)
+  const bellRef    = useRef<HTMLDivElement>(null)
   const activeConn = connectors.find(c => c.id === activeConnectorId)
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (infoRef.current && !infoRef.current.contains(e.target as Node)) setShowInfo(false)
+      if (bellRef.current && !bellRef.current.contains(e.target as Node)) setShowBell(false)
     }
-    if (showInfo) document.addEventListener('mousedown', handleClick)
+    if (showInfo || showBell) document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
-  }, [showInfo])
+  }, [showInfo, showBell])
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages])
 
@@ -67,20 +71,64 @@ export default function Chat() {
         </div>
 
         {/* Bell */}
-        <button
-          style={{
-            width: 38, height: 38, borderRadius: 10, flexShrink: 0,
-            background: '#fff', border: '1px solid var(--border-light)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#6B7280', cursor: 'pointer', transition: 'background 0.13s',
-          }}
-          onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB'}
-          onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = '#fff'}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-          </svg>
-        </button>
+        <div ref={bellRef} style={{ position: 'relative' }}>
+          <button
+            onClick={() => { setShowBell(v => !v); setBellRead(true) }}
+            style={{
+              width: 38, height: 38, borderRadius: 10, flexShrink: 0,
+              background: showBell ? '#F3F4F6' : '#fff', border: '1px solid var(--border-light)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: showBell ? 'var(--orange)' : '#6B7280', cursor: 'pointer', transition: 'all 0.13s',
+              position: 'relative',
+            }}
+            onMouseEnter={e => { if (!showBell) (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB' }}
+            onMouseLeave={e => { if (!showBell) (e.currentTarget as HTMLButtonElement).style.background = '#fff' }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            {/* Unread dot */}
+            {!bellRead && (
+              <span style={{ position: 'absolute', top: 7, right: 7, width: 7, height: 7, borderRadius: '50%', background: 'var(--orange)', border: '1.5px solid #fff' }} />
+            )}
+          </button>
+
+          {showBell && (
+            <div style={{
+              position: 'absolute', top: 46, right: 0, width: 300, zIndex: 999,
+              background: '#fff', borderRadius: 14, border: '1px solid var(--border-light)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.12)', overflow: 'hidden',
+              animation: 'fadeIn 0.15s ease-out',
+            }}>
+              {/* Header */}
+              <div style={{ padding: '14px 16px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-light)' }}>
+                <span style={{ fontWeight: 700, fontSize: 14, color: '#111827' }}>Notifications</span>
+                <span style={{ fontSize: 11, color: 'var(--orange)', cursor: 'pointer', fontWeight: 600 }}>Mark all read</span>
+              </div>
+
+              {/* Notification items */}
+              {[
+                { icon: '🗄️', title: 'Connector ready', desc: activeConn ? `"${activeConn.name}" is connected and ready to query.` : 'No data source connected yet.', time: 'Just now', color: '#16A34A' },
+                { icon: '🤖', title: 'AI Config tip', desc: 'Add your own API key in AI Config for faster, unlimited responses.', time: '2m ago', color: 'var(--orange)' },
+                { icon: '⭐', title: 'Pro Plan available', desc: 'Unlock templates, projects & statistics with the Pro Plan.', time: '5m ago', color: '#7C3AED' },
+              ].map((n, i) => (
+                <div key={i} style={{ padding: '12px 16px', display: 'flex', gap: 12, alignItems: 'flex-start', borderBottom: i < 2 ? '1px solid var(--border-light)' : 'none', cursor: 'pointer', transition: 'background 0.12s' }}
+                  onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = '#F9FAFB'}
+                  onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = '#fff'}
+                >
+                  <div style={{ width: 34, height: 34, borderRadius: 9, background: '#F9FAFB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>
+                    {n.icon}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 2 }}>{n.title}</div>
+                    <div style={{ fontSize: 12, color: '#6B7280', lineHeight: 1.45 }}>{n.desc}</div>
+                    <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 3 }}>{n.time}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Info — opens popover */}
         <div ref={infoRef} style={{ position: 'relative' }}>
