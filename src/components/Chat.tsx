@@ -5,6 +5,7 @@ import KdLogo from './KdLogo'
 export default function Chat() {
   const { messages, loading, sendMessage, approveAndExecute, connectors, activeConnectorId, setActiveConnector, clearMessages, uploadFile } = useDataLib()
   const [input, setInput]               = useState('')
+  const [inputFocused, setInputFocused] = useState(false)
   const [showInfo, setShowInfo]         = useState(false)
   const [showBell, setShowBell]         = useState(false)
   const [bellRead, setBellRead]         = useState(false)
@@ -381,18 +382,27 @@ export default function Chat() {
             </div>
 
             {/* Text input — pill */}
-            <div style={{ flex: 1, position: 'relative' }}>
+            <div style={{
+              flex: 1, position: 'relative',
+              borderRadius: 99,
+              border: inputFocused ? '1.5px solid var(--orange)' : '1.5px solid transparent',
+              boxShadow: inputFocused ? '0 0 0 3px rgba(249,115,22,0.12)' : 'none',
+              transition: 'border-color 0.15s, box-shadow 0.15s',
+              background: '#F3F4F6',
+            }}>
               <textarea
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={handleKey}
+                onFocus={() => setInputFocused(true)}
+                onBlur={() => setInputFocused(false)}
                 placeholder="Start typing"
                 disabled={!activeConnectorId || loading}
                 rows={1}
                 style={{
                   width: '100%', padding: '12px 20px',
                   border: 'none', outline: 'none', boxShadow: 'none',
-                  borderRadius: 99, background: '#F3F4F6',
+                  borderRadius: 99, background: 'transparent',
                   fontSize: 14, resize: 'none', lineHeight: 1.5,
                   minHeight: 44, maxHeight: 130,
                   color: 'var(--text-dark)', fontFamily: 'Inter, sans-serif',
