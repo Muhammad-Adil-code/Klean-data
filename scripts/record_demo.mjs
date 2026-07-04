@@ -1,23 +1,22 @@
 /**
- * Records a live interaction demo of Klean Data:
- * Login → Add SQLite DB → Chat query → Results
+ * Records a live Klean Data demo:
+ * Login → Chat → Select "data" SQLite DB → Query 1 → Results → Query 2 → Results
  * Outputs: screenshots/demo.gif
  *
- * Requires: backend on :8766, vite preview on :4174
+ * Requires: backend on :8766 (with "data" SQLite connector), vite preview on :4174
  */
 import puppeteer from 'puppeteer-core'
 import { mkdir, readdir, unlink } from 'fs/promises'
 import path from 'path'
 
-const CHROME  = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-const BASE    = 'http://localhost:4174'
-const DB_PATH = '/Users/primeteaser/Desktop/own/datalib/sample_data/sample_store.db'
-const FRAMES  = path.resolve('./screenshots/demo_frames')
+const CHROME       = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+const BASE         = 'http://localhost:4174'
+const CONNECTOR_ID = '23c27118'   // "data" — SQLite sample_store.db
+const FRAMES       = path.resolve('./screenshots/demo_frames')
 
-// ── helpers ────────────────────────────────────────────────────────────────
+// ── setup ──────────────────────────────────────────────────────────────────
 
 await mkdir(FRAMES, { recursive: true })
-// clear old frames
 const old = await readdir(FRAMES).catch(() => [])
 for (const f of old) await unlink(path.join(FRAMES, f)).catch(() => {})
 
@@ -30,16 +29,13 @@ const browser = await puppeteer.launch({
 const page = await browser.newPage()
 
 let idx = 0
-const snap = () => page.screenshot({ path: `${FRAMES}/${String(idx++).padStart(5,'0')}.png` })
-const wait = ms => new Promise(r => setTimeout(r, ms))
+const snap     = () => page.screenshot({ path: `${FRAMES}/${String(idx++).padStart(5,'0')}.png` })
+const wait     = ms  => new Promise(r => setTimeout(r, ms))
+const hold     = async (n, ms = 120) => { for (let i = 0; i < n; i++) { await snap(); await wait(ms) } }
+const typeChar = async (ch, delay = 55) => { await page.keyboard.type(ch); await snap(); await wait(delay) }
 
-// Hold current frame for N×interval ms
-async function hold(frames, interval = 120) {
-  for (let i = 0; i < frames; i++) { await snap(); await wait(interval) }
-}
-
-// Snap continuously while action runs
-async function snapWhile(fn, interval = 150) {
+// Snap continuously while awaiting a condition
+async function snapWhile(fn, interval = 160) {
   let done = false
   const loop = async () => { while (!done) { await snap(); await wait(interval) } }
   const loopP = loop()
@@ -48,188 +44,117 @@ async function snapWhile(fn, interval = 150) {
   await loopP
 }
 
-async function typeSlowly(selector, text, delay = 55) {
-  await page.focus(selector)
-  for (const ch of text) { await page.keyboard.type(ch); await snap(); await wait(delay) }
-}
-
-// ── Scene 1: Login page ────────────────────────────────────────────────────
-console.log('Scene 1: Login')
+// ── Scene 1: Login ─────────────────────────────────────────────────────────
+console.log('Scene 1: Login page')
 await page.goto(`${BASE}/login`, { waitUntil: 'networkidle0' })
-await hold(12) // show login
-
-// type email
-await typeSlowly('input[type="email"]', 'adil@kleandata.com')
-await hold(4)
-// type password
-await typeSlowly('input[type="password"]', 'password123')
-await hold(4)
-
-// click sign in
-await snapWhile(async () => {
-  await page.click('button[type="submit"]')
-  await wait(1400)
-}, 130)
-await hold(6)
-
-// ── Scene 2: App loaded — connectors tab ───────────────────────────────────
-console.log('Scene 2: Connectors')
-await page.evaluate(() => {
-  document.querySelectorAll('button').forEach(b => {
-    if (b.textContent?.trim() === 'Connectors') b.click()
-  })
-})
-await hold(8)
-
-// open Add Database form
-await page.evaluate(() => {
-  document.querySelectorAll('button').forEach(b => {
-    if (b.textContent?.includes('Add Database')) b.click()
-  })
-})
-await hold(6)
-
-// select SQLite
-await page.select('select', 'sqlite')
-await hold(3)
-
-// type the path
-await typeSlowly('input[placeholder*="absolute"]', DB_PATH, 40)
-await hold(4)
-
-// click Add & Test
-console.log('  Testing connection...')
-await snapWhile(async () => {
-  await page.evaluate(() => {
-    document.querySelectorAll('button').forEach(b => {
-      if (b.textContent?.includes('Add & Test')) b.click()
-    })
-  })
-  await wait(4000)
-}, 180)
-await hold(10) // show connected state
-
-// click the connector card to make it active
-await page.evaluate(() => {
-  const cards = document.querySelectorAll('button.btn')
-  // click the connector card itself (first card in the grid)
-  const grid = document.querySelector('[style*="auto-fill"]')
-  if (grid) {
-    const card = grid.firstElementChild
-    if (card) card.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-  }
-})
-// Try clicking by finding the card div
-await page.evaluate(() => {
-  document.querySelectorAll('div').forEach(d => {
-    if (d.style && d.style.borderRadius === '16px') { d.click(); }
-  })
-})
-await hold(6)
-
-// ── Scene 3: Chat tab ──────────────────────────────────────────────────────
-console.log('Scene 3: Chat')
-await page.evaluate(() => {
-  document.querySelectorAll('button').forEach(b => {
-    if (b.textContent?.trim() === 'AI Chat') b.click()
-  })
-})
 await hold(10)
 
-// select the connector from the DB dropdown in chat bar
-await page.evaluate(() => {
-  const selects = document.querySelectorAll('select')
-  for (const s of selects) {
-    const opts = Array.from(s.options)
-    const db = opts.find(o => o.text.includes('sqlite') || o.text.includes('sample') || (o.value && o.value.length > 5))
-    if (db) { s.value = db.value; s.dispatchEvent(new Event('change', { bubbles: true })); break }
-  }
-})
+// Type email
+await page.focus('input[type="email"]')
+for (const ch of 'adil@kleandata.com') await typeChar(ch)
+await hold(4)
+
+// Tab to password
+await page.keyboard.press('Tab')
+for (const ch of 'password123') await typeChar(ch, 60)
+await hold(4)
+
+// Submit
+await snapWhile(async () => {
+  await page.click('button[type="submit"]')
+  await wait(1200)
+}, 130)
 await hold(8)
 
-// ── Scene 4: Type query ────────────────────────────────────────────────────
-console.log('Scene 4: Typing query...')
-const query = 'Show me top 5 customers by total spend'
+// ── Scene 2: Chat tab already active — show empty "no source" state ────────
+console.log('Scene 2: Chat — no source selected')
+await hold(10)
+
+// ── Scene 3: Click the DB icon to select data source ──────────────────────
+console.log('Scene 3: Select the SQLite "data" connector')
+// Change the hidden select in the chat bar to pick our connector
+await page.evaluate((id) => {
+  const selects = document.querySelectorAll('select')
+  for (const s of selects) {
+    const opt = Array.from(s.options).find(o => o.value === id)
+    if (opt) {
+      s.value = id
+      s.dispatchEvent(new Event('change', { bubbles: true }))
+      break
+    }
+  }
+}, CONNECTOR_ID)
+await hold(10) // show empty state with DB selected
+
+// ── Scene 4: Type first query ──────────────────────────────────────────────
+console.log('Scene 4: Type first query')
 await page.focus('textarea')
 await hold(4)
-for (const ch of query) {
-  await page.keyboard.type(ch)
-  await snap()
-  await wait(52)
-}
+for (const ch of 'Show me top 5 customers by total spend') await typeChar(ch, 52)
 await hold(6)
 
-// ── Scene 5: Send & wait for plan ─────────────────────────────────────────
-console.log('Scene 5: Sending...')
+// ── Scene 5: Send and wait for Action Plan ─────────────────────────────────
+console.log('Scene 5: Send query, wait for plan...')
 await snapWhile(async () => {
   await page.keyboard.press('Enter')
-  // wait for plan card to appear (up to 18s)
   await page.waitForFunction(
-    () => document.body.innerText.includes('Action Plan') || document.body.innerText.includes('Analysis:'),
-    { timeout: 18000 }
+    () => document.body.innerText.includes('Action Plan'),
+    { timeout: 25000 }
   ).catch(() => {})
-  await wait(500)
+  await wait(600)
 }, 160)
-await hold(14) // show plan card
+await hold(14)
 
 // ── Scene 6: Click Run ─────────────────────────────────────────────────────
-console.log('Scene 6: Running query...')
+console.log('Scene 6: Run the plan')
 await snapWhile(async () => {
   await page.evaluate(() => {
     document.querySelectorAll('button').forEach(b => {
       if (b.textContent?.includes('Run') && b.textContent?.includes('step')) b.click()
     })
   })
-  // wait for results table
   await page.waitForFunction(
-    () => document.body.innerText.includes('rows') && document.body.innerText.includes('David Lee'),
-    { timeout: 18000 }
+    () => {
+      const t = document.body.innerText
+      return t.includes(' rows') && (t.includes('David') || t.includes('Carol') || t.includes('Alice') || t.includes('rows\n'))
+    },
+    { timeout: 20000 }
   ).catch(() => {})
-  await wait(600)
+  await wait(700)
 }, 160)
-await hold(20) // hold on results
+await hold(22) // hold on results table
 
-// ── Scene 7: Second query ─────────────────────────────────────────────────
-console.log('Scene 7: Second query...')
+// ── Scene 7: Second query ──────────────────────────────────────────────────
+console.log('Scene 7: Second query')
 await page.focus('textarea')
 await hold(5)
-const q2 = 'Which products are low on stock?'
-for (const ch of q2) {
-  await page.keyboard.type(ch)
-  await snap()
-  await wait(52)
-}
+for (const ch of 'Which products are low on stock?') await typeChar(ch, 52)
 await hold(5)
+
 await snapWhile(async () => {
   await page.keyboard.press('Enter')
   await page.waitForFunction(
-    () => {
-      const plans = document.querySelectorAll('[style*="Action Plan"], *')
-      return document.body.innerText.split('Action Plan').length > 2
-    },
-    { timeout: 18000 }
-  ).catch(() => {})
-  await wait(500)
-}, 160)
-await hold(12)
-
-// click Run on the second plan
-await snapWhile(async () => {
-  await page.evaluate(() => {
-    const btns = Array.from(document.querySelectorAll('button'))
-    const runBtns = btns.filter(b => b.textContent?.includes('Run') && b.textContent?.includes('step'))
-    if (runBtns.length > 0) runBtns[runBtns.length - 1].click()
-  })
-  await page.waitForFunction(
-    () => {
-      const text = document.body.innerText
-      return (text.match(/rows/g) || []).length >= 2
-    },
-    { timeout: 18000 }
+    () => (document.body.innerText.match(/Action Plan/g) || []).length >= 2,
+    { timeout: 25000 }
   ).catch(() => {})
   await wait(600)
 }, 160)
-await hold(22) // final hold on results
+await hold(12)
+
+// click Run on last plan
+await snapWhile(async () => {
+  await page.evaluate(() => {
+    const btns = Array.from(document.querySelectorAll('button'))
+      .filter(b => b.textContent?.includes('Run') && b.textContent?.includes('step'))
+    if (btns.length) btns[btns.length - 1].click()
+  })
+  await page.waitForFunction(
+    () => (document.body.innerText.match(/ rows/g) || []).length >= 2,
+    { timeout: 20000 }
+  ).catch(() => {})
+  await wait(700)
+}, 160)
+await hold(24) // final hold
 
 await browser.close()
-console.log(`\n✓ Captured ${idx} frames → ${FRAMES}`)
+console.log(`\n✓ ${idx} frames → ${FRAMES}`)
