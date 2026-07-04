@@ -1,6 +1,8 @@
 node_modules/
 dist/
 .env
+.env.*
+!.env.example
 __pycache__/
 *.pyc
 .DS_Store
@@ -10,3 +12,8 @@ backend/connectors.json
 backend/api_keys.txt
 backend/uploads/
 backend/user_config.json
+*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
